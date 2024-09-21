@@ -19,10 +19,13 @@ private void Start() {
         health-=damage;
         if(health<=0){
             Die();
+
         }
     }
     public void Die(){
         //Instantiate(DeathEffect,transform.position,Quaternion.identity);
+        AudioManager.Instance.PlaySFX("Hurt");
         Destroy(gameObject);
+        
     }
 }

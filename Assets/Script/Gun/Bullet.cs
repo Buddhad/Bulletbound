@@ -17,6 +17,7 @@ public class Bullet : MonoBehaviour
         enemy=other.GetComponent<EnemyHealth>();
         if(enemy!=null){
             enemy.TakeDamage(damage);
+            AudioManager.Instance.PlaySFX("Die");
         }
         Destroy(gameObject);
         

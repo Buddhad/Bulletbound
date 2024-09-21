@@ -9,6 +9,7 @@ public class PlayerHeal : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.CompareTag("Player")){
+            AudioManager.Instance.PlaySFX("HealSFX");
             pHealth.health+=_heal;
             gameObject.SetActive(false);
         }

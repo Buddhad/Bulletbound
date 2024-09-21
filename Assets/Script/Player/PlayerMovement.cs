@@ -38,7 +38,7 @@ public class PlayerMovement : MonoBehaviour
         rbody.velocity = new Vector2(moveX * moveSpeed, rbody.velocity.y);
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
-            //jumpSoundEffect.Play();
+            AudioManager.Instance.PlaySFX("Jump");
             rbody.velocity = new Vector2(rbody.velocity.x, jumpForce);
         }
         UpdateAnimation();

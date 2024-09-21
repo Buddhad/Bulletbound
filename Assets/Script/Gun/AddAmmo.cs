@@ -12,6 +12,7 @@ public class AddAmmo : MonoBehaviour
         if(other.gameObject.CompareTag("Player")){
             ShootingDis.ammoAmmount+=_ammo;
             gameObject.SetActive(false);
+            AudioManager.Instance.PlaySFX("AddReload");
         }
     }
 }

@@ -19,6 +19,7 @@ public class Shooting : MonoBehaviour
         showAmmo.text=ammoAmmount.ToString("Bullet: "+ammoAmmount+"/7");
     if(Input.GetKeyDown(KeyCode.F) && !isFiring && ammoAmmount>0){
         Instantiate(bulletPrefab,shootingPoint.position,transform.rotation);
+                AudioManager.Instance.PlaySFX("Gun");
                 isFiring=true;
                 ammoAmmount--;
                 isFiring=false;
@@ -28,6 +29,7 @@ public class Shooting : MonoBehaviour
         if(Input.GetKey(KeyCode.R)){
             ammoAmmount=7;
             anim.SetTrigger("reload");
+            AudioManager.Instance.PlaySFX("Reload");
             
         }
     }
