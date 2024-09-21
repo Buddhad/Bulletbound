@@ -8,6 +8,7 @@ TagManager:
   - Enemy
   - Coin
   - Double
+  - ScreenShake
   layers:
   - Default
   - TransparentFX

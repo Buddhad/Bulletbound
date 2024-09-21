@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     //private SpriteRenderer sprite;
     private float moveX;
     private float jumpForce = 5f;
-    private float moveSpeed = 5f;
+    public float moveSpeed = 5f;
 
     private enum MovementState{idel, jump ,runing, falling,reloading}
 

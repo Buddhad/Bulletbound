@@ -5,7 +5,7 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     [SerializeField]
-    //private GameObject DeathEffect;
+    private ParticleSystem deathEffect;
     //Particle effect for death
     public float health=100;
     //public int speed;
@@ -19,7 +19,7 @@ private void Start() {
         health-=damage;
         if(health<=0){
             Die();
-
+        deathEffect.Play();
         }
     }
     public void Die(){

@@ -8,7 +8,7 @@ public class Shooting : MonoBehaviour
     public Transform shootingPoint;
     public GameObject bulletPrefab;
     public Animator anim;
-    public int ammoAmmount=7;
+    public int ammoAmmount=14;
     private bool isFiring;
     public TextMeshProUGUI showAmmo;
 
@@ -16,7 +16,7 @@ public class Shooting : MonoBehaviour
     Shoot();
     }
     private void Shoot(){
-        showAmmo.text=ammoAmmount.ToString("Bullet: "+ammoAmmount+"/7");
+        showAmmo.text=ammoAmmount.ToString("Bullet: "+ammoAmmount+"/14");
     if(Input.GetKeyDown(KeyCode.F) && !isFiring && ammoAmmount>0){
         Instantiate(bulletPrefab,shootingPoint.position,transform.rotation);
                 AudioManager.Instance.PlaySFX("Gun");

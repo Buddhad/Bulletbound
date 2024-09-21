@@ -2,13 +2,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Bullet : MonoBehaviour
+public class BulletsPow : MonoBehaviour
 {
-    public float speed=20f;
+    private float speed=20f;
     public Rigidbody2D rb;
-    public float damage=10;
+    public float damage=30;
     EnemyHealth enemy;
-    
 
     private void Start() {
         rb=GetComponent<Rigidbody2D>();
@@ -23,5 +22,4 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject);
         
     }
-    
 }
