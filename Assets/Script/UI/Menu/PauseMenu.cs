@@ -6,7 +6,7 @@ using UnityEngine.SceneManagement;
 public class PauseMenu : MonoBehaviour
 {
     [SerializeField]GameObject pauseMenu;
-    [SerializeField]GameObject audioMenu;
+    //[SerializeField]GameObject audioMenu;
     public void Pause(){
         pauseMenu.SetActive(true);
         Time.timeScale=0;
@@ -25,7 +25,7 @@ public class PauseMenu : MonoBehaviour
     }
 
     public void AudioMenu(){
-        audioMenu.SetActive(true);
+        //audioMenu.SetActive(true);
         Time.timeScale=0;
     }
 }

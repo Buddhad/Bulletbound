@@ -5,27 +5,34 @@ using UnityEngine;
 public class EnemyHealth : MonoBehaviour
 {
     [SerializeField]
-    private ParticleSystem deathEffect;
+    private GameObject ParticleEffect;
     //Particle effect for death
-    public float health=100;
-    //public int speed;
+    public float health;
+    public float maxHealth = 100;
     private Rigidbody2D rb;
+    [SerializeField] private EnemyFloatingHealthbar floatingHealthbar;
 
-private void Start() {
-    rb=GetComponent<Rigidbody2D>();
-}
+    private void Start()
+    {
+        rb = GetComponent<Rigidbody2D>();
+        floatingHealthbar=GetComponentInChildren<EnemyFloatingHealthbar>();
+        maxHealth=health;
+    }
 
-    public void TakeDamage(float damage){
-        health-=damage;
-        if(health<=0){
+    public void TakeDamage(float damage)
+    {
+        health -= damage;
+        floatingHealthbar.UpdateHealthBar(health,maxHealth);
+        if(health <= 0)
+        {
             Die();
-        deathEffect.Play();
         }
     }
-    public void Die(){
-        //Instantiate(DeathEffect,transform.position,Quaternion.identity);
+    public void Die()
+    {
         AudioManager.Instance.PlaySFX("Hurt");
         Destroy(gameObject);
-        
+        GameObject Explode = (GameObject)Instantiate(ParticleEffect, transform.position, Quaternion.identity);
+
     }
 }

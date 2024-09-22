@@ -10,27 +10,10 @@ public class MoveNextLvl : MonoBehaviour
     {
         nextSceneLoad= SceneManager.GetActiveScene().buildIndex+1;
     }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if(other.gameObject.tag=="Player")
-        {
-            //Last Level of the game
-            if(SceneManager.GetActiveScene().buildIndex==11)
-            {
-                SceneManager.LoadScene("GameComplete");
-            }
-            else
-            {
+    void NextLevel(){
             //move to next level
             AudioManager.Instance.PlaySFX("Win");
             SceneManager.LoadScene(nextSceneLoad);
-            //setting int for index
-            if(nextSceneLoad>PlayerPrefs.GetInt("levelAt")){
-                PlayerPrefs.SetInt("levelAt",nextSceneLoad);
-                }
-            }
-        }
     }
 
 }
