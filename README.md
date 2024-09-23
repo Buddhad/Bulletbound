@@ -1,2 +1,2 @@
-# JustKill
+# Bulletbound
 Unity Platformer game
