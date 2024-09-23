@@ -14,7 +14,7 @@ public class ItemCollector : MonoBehaviour
     }
 
     private void Update() {
-        CoinsText.text="Coins: "+_coins;
+        CoinsText.text="Score: "+_coins;
     }
     //[SerializeField] private AudioSource CoinCollectSound;
 /*

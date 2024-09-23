@@ -4,9 +4,8 @@ using UnityEngine;
 
 public class DestroyBullets : MonoBehaviour
 {
-    
     void Start()
     {
-        Destroy(gameObject,4f);
+        Destroy(gameObject,5f);
     }
 }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveSpawner : MonoBehaviour
 {   
@@ -19,11 +20,9 @@ public class WaveSpawner : MonoBehaviour
 
     void StartWave()
     {
-        if(currentWave <= 4)
-        {
             currentWave++;
             StartCoroutine(SpawnEnemies());
-        }
+        
     }
 
     IEnumerator SpawnEnemies()
@@ -48,12 +47,4 @@ public class WaveSpawner : MonoBehaviour
         yield return new WaitForSeconds(waveDuration);
         StartWave();
     }
-
-/*
-    void ShowLevelCompleteScreen(){
-    LevelCompleteScreen.SetActive(true);
-    Invoke("GameOver",1f);
-    Time.timeScale=0;
-    }
-    */
 }

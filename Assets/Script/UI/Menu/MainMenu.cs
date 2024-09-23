@@ -5,8 +5,9 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
-    [SerializeField]GameObject quitDialog;
-    public void PlayGame(){
+    [SerializeField] GameObject quitDialog;
+    public void PlayGame()
+    {
         SceneManager.LoadScene("Level-1");
     }
 
@@ -17,7 +18,7 @@ public class MainMenu : MonoBehaviour
 
     public void LevelScene()
     {
-    SceneManager.LoadScene("LevelSelection");
+        SceneManager.LoadScene("LevelSelection");
     }
 
     public void Sound()
@@ -29,12 +30,17 @@ public class MainMenu : MonoBehaviour
         Debug.Log("Music Check!!");
     }
 
-public void YesExit(){
+    public void YesExit()
+    {
         Application.Quit();
-}
-public void NoExit(){
-    quitDialog.SetActive(false);
-}
+    }
+    public void NoExit()
+    {
+        quitDialog.SetActive(false);
+    }
+    public void MainMenuSection(){
+        SceneManager.LoadScene("MainMenu");
+    }
 
 
 }
