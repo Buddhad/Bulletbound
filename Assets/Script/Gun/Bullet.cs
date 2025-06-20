@@ -27,6 +27,26 @@ public class Bullet : MonoBehaviour
         {
             return;
         }
+        if (other.CompareTag("Ability_FireRate"))
+        {
+            return;
+        }
+        if (other.CompareTag("Ability_Speed"))
+        {
+            return;
+        }
+        if (other.CompareTag("Ability_Shield"))
+        {
+            return;
+        }
+        if (other.CompareTag("Ability_Health"))
+        {
+            return;
+        }
+        if (other.CompareTag("Ability_Jump"))
+        {
+            return;
+        }
         Destroy(gameObject);
     }
 

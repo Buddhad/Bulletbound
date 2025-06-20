@@ -14,8 +14,6 @@ public class EnemyHealth : MonoBehaviour
     private float maxKillX = 14.9f;
     public GameObject[] abilities;
 
-
-
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();

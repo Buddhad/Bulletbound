@@ -9,6 +9,11 @@ TagManager:
   - Coin
   - Double
   - ScreenShake
+  - Ability_Speed
+  - Ability_Jump
+  - Ability_Health
+  - Ability_FireRate
+  - Ability_Shield
   layers:
   - Default
   - TransparentFX
@@ -17,7 +22,7 @@ TagManager:
   - Water
   - UI
   - Ground
-  - 
+  - Ability
   - 
   - 
   - 

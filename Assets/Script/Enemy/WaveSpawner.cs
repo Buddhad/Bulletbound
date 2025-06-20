@@ -10,6 +10,7 @@ public class WaveSpawner : MonoBehaviour
     public GameObject enemyPrefab;
     public Transform[] spawnPoints;
     [SerializeField] private GameObject LevelCompleteScreen;
+
     private int currentWave = 0;
 
     void Start()
@@ -52,13 +53,29 @@ public class WaveSpawner : MonoBehaviour
             {
                 yield return null;
             }
-
-            // 🪙 Wait until all coins are collected
-            while (GameObject.FindGameObjectsWithTag("Coin").Length > 0)
+            // Check if any abilities exist in the scene
+            // This assumes abilities are on GameObjects with the "Ability" layer
+            // If you have a different way to check for abilities, adjust this logic accordingly
+            // Check if any abilities exist in the scene
+            // 🪙 Wait until all coins and ability pickups are collected
+            while (true)
             {
+                bool abilityExists = false;
+                GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
+                foreach (GameObject obj in allObjects)
+                {
+                    if (obj.layer == LayerMask.NameToLayer("Ability"))
+                    {
+                        abilityExists = true;
+                        break;
+                    }
+                }
+
+                if (GameObject.FindGameObjectsWithTag("Coin").Length == 0 && !abilityExists)
+                    break;
+
                 yield return null;
             }
-
             // Disable player movement and force idle
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)

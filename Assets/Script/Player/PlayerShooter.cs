@@ -13,6 +13,9 @@ public class PlayerShooter : MonoBehaviour
     public TextMeshProUGUI showAmmo;
     public float reloadDuration = 1f;
     public bool isReloading = false;
+    public float fireRate = 0.25f; // Example: 4 shots per second
+    private float nextFireTime;
+
     private void Update()
     {
         if (Time.timeScale == 0f) return;
@@ -21,12 +24,13 @@ public class PlayerShooter : MonoBehaviour
     private void Shoot()
     {
         showAmmo.text = "Bullet: " + ammoAmmount + "/14";
-        if (Input.GetKeyDown(KeyCode.F) && !isFiring && ammoAmmount > 0)
+        if (Input.GetKeyDown(KeyCode.F) && !isFiring && ammoAmmount > 0 && Time.time >= nextFireTime)
         {
             Instantiate(bulletPrefab, shootingPoint.position, transform.rotation);
             AudioManager.Instance.PlaySFX("Gun");
             isFiring = true;
             ammoAmmount--;
+            nextFireTime = Time.time + fireRate;
             isFiring = false;
         }
         // Display ammo count
@@ -46,14 +50,17 @@ public class PlayerShooter : MonoBehaviour
         // Reload coroutine
         IEnumerator Reload()
         {
-            isReloading = true;
-            anim.SetBool("isReloading", true);
-            yield return new WaitForSeconds(reloadDuration); // Adjust the reload time as needed
-            AudioManager.Instance.PlaySFX("Reload");
-            ammoAmmount = 14; // Reset ammo to full after reload
-            anim.SetBool("isReloading", false);
-            isReloading = false;
-            isFiring = false;
+            if (ammoAmmount <= 5)
+            {
+                isReloading = true;
+                anim.SetBool("isReloading", true);
+                yield return new WaitForSeconds(reloadDuration); // Adjust the reload time as needed
+                AudioManager.Instance.PlaySFX("Reload");
+                ammoAmmount = 14; // Reset ammo to full after reload
+                anim.SetBool("isReloading", false);
+                isReloading = false;
+                isFiring = false;
+            }
         }
         // Update ammo display
         showAmmo.text = "Bullet: " + ammoAmmount + "/14";

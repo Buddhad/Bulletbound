@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private LayerMask jumpableGround;
     //private SpriteRenderer sprite;
     public float moveX;
-    private float jumpForce = 5f;
+    public float jumpForce = 5f;
     public float moveSpeed = 5f;
 
     private enum MovementState { idel, jump, runing, falling }

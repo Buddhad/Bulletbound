@@ -20,54 +20,15 @@ public class ItemCollector : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        // Check if the collided object has the tag "Coin"
         if (other.CompareTag("Coin"))
         {
             _coins += 1;
             AudioManager.Instance.PlaySFX("CoinSFX");
             UpdateCoinUI();
             Destroy(other.gameObject);
-            
         }
     }
 }
 
-
-    //[SerializeField] private AudioSource CoinCollectSound;
-    /*
-        private void OnTriggerEnter2D(Collider2D other) {
-            if(other.gameObject.CompareTag("Coin")){
-                Destroy(other.gameObject);
-                _coins++;
-                CoinsText.text="Coins: "+_coins;
-                //CoinCollectSound.Play();
-                //AudioManager.Instance.PlaySFX("Coin");
-            }
-        }
-        */
-
-    /*
-    private void OnCollisionEnter2D(Collision2D other)
-    {
-        if (other.gameObject.CompareTag("Double"))
-        {
-            AudioManager.Instance.PlaySFX("PowerupB");
-            doublePickup = true;
-            other.gameObject.SetActive(false);
-
-        }
-        if (other.gameObject.CompareTag("Coin") && !doublePickup)
-        {
-            AudioManager.Instance.PlaySFX("CoinSFX");
-            _coins += 1;
-            other.gameObject.SetActive(false);
-
-        }
-        if (other.gameObject.CompareTag("Coin") && doublePickup)
-        {
-            AudioManager.Instance.PlaySFX("PowerupA");
-            _coins += 2;
-            other.gameObject.SetActive(false);
-        }
-    }
-*/
 
