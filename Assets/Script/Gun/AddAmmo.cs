@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class AddAmmo : MonoBehaviour
 {
-    public Shooting ShootingDis;
-    private int _ammo=7;
+    public PlayerShooter ShootingDis;
+    private int _ammo=14; // Amount of ammo to add
 
     private void OnCollisionEnter2D(Collision2D other) {
         if(other.gameObject.CompareTag("Player")){

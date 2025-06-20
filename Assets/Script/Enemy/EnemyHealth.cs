@@ -4,27 +4,32 @@ using UnityEngine;
 
 public class EnemyHealth : MonoBehaviour
 {
-    [SerializeField]
-    private GameObject DeathEffect;
-    //Particle effect for death
+    // Particle effect for death
+    [SerializeField] private GameObject DeathEffect;
     public float health;
     public float maxHealth = 100;
     private Rigidbody2D rb;
+    [SerializeField] private Transform player; // assign in Inspector or auto
+    private float minKillX = -21.9f;
+    private float maxKillX = 14.9f;
     public GameObject[] abilities;
-    //[SerializeField] private EnemyFloatingHealthbar floatingHealthbar;
+
+
 
     private void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        //floatingHealthbar=GetComponentInChildren<EnemyFloatingHealthbar>();
-        maxHealth=health;
+        maxHealth = health;
+        
     }
 
     public void TakeDamage(float damage)
     {
+        // Enemy must be within player's killable X range
+        if (transform.position.x < minKillX || transform.position.x > maxKillX)
+            return; // Too far — ignore damage
         health -= damage;
-        //floatingHealthbar.UpdateHealthBar(health,maxHealth);
-        if(health <= 0)
+        if (health <= 0)
         {
             Die();
         }
@@ -32,16 +37,17 @@ public class EnemyHealth : MonoBehaviour
     public void Die()
     {
         AudioManager.Instance.PlaySFX("Hurt");
-        Destroy(gameObject);
         SpawnRandomAbility();
-        GameObject Explode = (GameObject)Instantiate(DeathEffect, transform.position, Quaternion.identity);
+        GameObject explode = Instantiate(DeathEffect, transform.position, Quaternion.identity);
+        Destroy(explode, 2f); // ⏱️ adjust to match particle duration
+
+        Destroy(gameObject);
     }
 
     public void SpawnRandomAbility()
     {
         int randomIndex = Random.Range(0, abilities.Length);
         GameObject ability = abilities[randomIndex];
-
         GameObject spawnedAbility = Instantiate(ability, transform.position, Quaternion.identity);
     }
 }
