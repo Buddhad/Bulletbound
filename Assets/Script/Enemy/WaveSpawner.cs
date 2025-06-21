@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using TMPro;
 
 public class WaveSpawner : MonoBehaviour
 {
@@ -13,16 +14,20 @@ public class WaveSpawner : MonoBehaviour
 
     private int currentWave = 0;
 
-    void Start()
+    private void OnEnable()
     {
-        StartWave();
+        GameStartTimer.OnGameStarted += StartWave;
     }
 
-    void StartWave()
+    private void OnDisable()
+    {
+        GameStartTimer.OnGameStarted -= StartWave;
+    }
+
+    public void StartWave()
     {
         currentWave++;
         StartCoroutine(SpawnEnemies());
-
     }
 
     IEnumerator SpawnEnemies()
@@ -32,15 +37,13 @@ public class WaveSpawner : MonoBehaviour
         for (int i = 0; i < enemiesPerWave; i++)
         {
             int randomIndex = Random.Range(0, spawnPoints.Length);
-            // Instantiate the enemy prefab
-            GameObject enemyInstance = Instantiate(enemyPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
-            // Add the EnemyFollow script if needed
-            //enemyInstance.AddComponent<EnemyFollow>();
+            Instantiate(enemyPrefab, spawnPoints[randomIndex].position, Quaternion.identity);
             yield return new WaitForSeconds(waveDuration / enemiesPerWave);
         }
+
         Debug.Log("Wave " + currentWave + " completed");
-        // Check if there are more waves to spawn
-        if (currentWave < 3) // Assuming you want 3 waves
+
+        if (currentWave < 5)
         {
             StartWave();
         }
@@ -48,21 +51,13 @@ public class WaveSpawner : MonoBehaviour
         {
             Debug.Log("All waves completed!");
 
-            // Wait until all enemies are destroyed
             while (GameObject.FindGameObjectsWithTag("Enemy").Length > 0)
-            {
                 yield return null;
-            }
-            // Check if any abilities exist in the scene
-            // This assumes abilities are on GameObjects with the "Ability" layer
-            // If you have a different way to check for abilities, adjust this logic accordingly
-            // Check if any abilities exist in the scene
-            // 🪙 Wait until all coins and ability pickups are collected
+
             while (true)
             {
                 bool abilityExists = false;
-                GameObject[] allObjects = GameObject.FindObjectsOfType<GameObject>();
-                foreach (GameObject obj in allObjects)
+                foreach (GameObject obj in GameObject.FindObjectsOfType<GameObject>())
                 {
                     if (obj.layer == LayerMask.NameToLayer("Ability"))
                     {
@@ -76,28 +71,28 @@ public class WaveSpawner : MonoBehaviour
 
                 yield return null;
             }
-            // Disable player movement and force idle
+
             GameObject player = GameObject.FindWithTag("Player");
             if (player != null)
             {
                 PlayerMovement movement = player.GetComponent<PlayerMovement>();
                 if (movement != null)
                 {
-                    movement.ForceIdle();           // ✅ stop movement visually
-                    movement.enabled = false;       // then disable control
+                    movement.ForceIdle();
+                    movement.enabled = false;
                 }
             }
 
-            // Short delay before showing level complete UI
             yield return new WaitForSeconds(2f);
+            // Update the score display
+            // Just before showing level complete screen
+            int previousHighScore = PlayerPrefs.GetInt("HighScore", 0);
+            if (ScoreManager.CurrentScore > previousHighScore)
+            {
+                PlayerPrefs.SetInt("HighScore", ScoreManager.CurrentScore);
+                PlayerPrefs.Save();
+            }
             LevelCompleteScreen.SetActive(true);
-
-            /*
-            // Start the next wave after a delay (optional)
-            yield return new WaitForSeconds(waveDuration);
-            StartWave();
-            */
         }
     }
-
 }

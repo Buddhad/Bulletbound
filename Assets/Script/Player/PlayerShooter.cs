@@ -50,7 +50,7 @@ public class PlayerShooter : MonoBehaviour
         // Reload coroutine
         IEnumerator Reload()
         {
-            if (ammoAmmount <= 5)
+            if (ammoAmmount <= 7)
             {
                 isReloading = true;
                 anim.SetBool("isReloading", true);

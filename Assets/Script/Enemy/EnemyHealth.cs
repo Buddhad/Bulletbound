@@ -9,7 +9,8 @@ public class EnemyHealth : MonoBehaviour
     public float health;
     public float maxHealth = 100;
     private Rigidbody2D rb;
-    [SerializeField] private Transform player; // assign in Inspector or auto
+
+    // 🔒 Limits where enemy can be killed (same as player's movement limit)
     private float minKillX = -21.9f;
     private float maxKillX = 14.9f;
     public GameObject[] abilities;
@@ -18,7 +19,7 @@ public class EnemyHealth : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         maxHealth = health;
-        
+
     }
 
     public void TakeDamage(float damage)
@@ -34,6 +35,7 @@ public class EnemyHealth : MonoBehaviour
     }
     public void Die()
     {
+        ScoreManager.AddScore(10);
         AudioManager.Instance.PlaySFX("Hurt");
         SpawnRandomAbility();
         GameObject explode = Instantiate(DeathEffect, transform.position, Quaternion.identity);

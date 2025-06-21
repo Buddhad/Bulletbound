@@ -32,7 +32,10 @@ public class AbilityCollector : MonoBehaviour
             case "Ability_Health":
                 abilityManager.ActivateHealthBoost();
                 break;
-
+            case "Ability_DoubleCoins":
+                abilityManager.ActivateDoubleCoins(5f); // Double coins for 5 seconds
+                break;
+            
             default:
                 return;
         }

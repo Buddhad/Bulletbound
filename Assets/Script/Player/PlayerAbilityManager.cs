@@ -8,12 +8,13 @@ public class PlayerAbilityManager : MonoBehaviour
     private PlayerMovement playerMovement;
     private PlayerHealth playerHealth;
     private PlayerShooter weaponScript;
+    private bool isDoubleCoinActive = false;
 
     [Header("Boost Values")]
     public float speedBoostAmount = 2f;
     public float jumpBoostAmount = 1.5f;
+    private float scoreMultiplier = 1f;
     public float fireRateBoostMultiplier = 0.5f;
-
     public float healthBoostAmount = 100f;
 
     private float originalSpeed;
@@ -37,6 +38,7 @@ public class PlayerAbilityManager : MonoBehaviour
     {
         StopCoroutine("ResetSpeed");
         playerMovement.moveSpeed *= speedBoostAmount;
+        AudioManager.Instance.PlaySFX("SpeedBoostSFX");
         StartCoroutine(ResetSpeed(duration));
     }
 
@@ -51,6 +53,7 @@ public class PlayerAbilityManager : MonoBehaviour
     {
         StopCoroutine("ResetJump");
         playerMovement.jumpForce *= jumpBoostAmount;
+        AudioManager.Instance.PlaySFX("SpeedBoostSFX");
         StartCoroutine(ResetJump(duration));
     }
 
@@ -66,6 +69,7 @@ public class PlayerAbilityManager : MonoBehaviour
         if (!isShieldActive)
         {
             isShieldActive = true;
+            AudioManager.Instance.PlaySFX("SpeedBoostSFX");
             Debug.Log("🛡️ Shield Activated");
             StartCoroutine(ShieldDuration());
         }
@@ -87,19 +91,20 @@ public class PlayerAbilityManager : MonoBehaviour
     //After 5 seconds, it goes back to normal
     public void ActivateFireRateBoost(float newRate, float duration)
     {
-        Shooting shoot = GetComponent<Shooting>();
+        PlayerShooter shoot = GetComponent<PlayerShooter>();
         if (shoot != null)
         {
             float originalRate = shoot.fireRate;
             shoot.fireRate = newRate;
             StartCoroutine(ResetFireRate(originalRate, duration));
+            AudioManager.Instance.PlaySFX("SpeedBoostSFX");
         }
     }
 
     private IEnumerator ResetFireRate(float originalRate, float duration)
     {
         yield return new WaitForSeconds(duration);
-        Shooting shoot = GetComponent<Shooting>();
+        PlayerShooter shoot = GetComponent<PlayerShooter>();
         if (shoot != null)
         {
             shoot.fireRate = originalRate;
@@ -109,5 +114,29 @@ public class PlayerAbilityManager : MonoBehaviour
     public void ActivateHealthBoost()
     {
         playerHealth.RestoreHealth(healthBoostAmount);
+        AudioManager.Instance.PlaySFX("SpeedBoostSFX");
+    }
+
+    // Double Coins
+    public void ActivateDoubleCoins(float duration)
+    {
+        if (isDoubleCoinActive) return;
+        isDoubleCoinActive = true;
+        AudioManager.Instance.PlaySFX("CoinSFX");
+        scoreMultiplier = 2f;
+        Debug.Log("🪙 Double Coins Activated!");
+        StartCoroutine(ResetDoubleCoins(duration));
+    }
+    private IEnumerator ResetDoubleCoins(float duration)
+    {
+        yield return new WaitForSeconds(duration);
+        isDoubleCoinActive = false;
+        scoreMultiplier = 1f;
+        Debug.Log("🪙 Double Coins Ended");
+    }
+
+    public float GetScoreMultiplier()
+    {
+        return scoreMultiplier;
     }
 }

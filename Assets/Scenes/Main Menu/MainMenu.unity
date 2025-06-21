@@ -3307,7 +3307,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -3775,9 +3775,9 @@ MonoBehaviour:
     audioClip: {fileID: 8300000, guid: c48a972d3d024c2408a3331750786a29, type: 3}
   - name: Jump
     audioClip: {fileID: 8300000, guid: 9277a8f87666d4445968292e920846b4, type: 3}
-  - name: PowerupA
+  - name: powerUpSFX
     audioClip: {fileID: 8300000, guid: 3a77f3cce9511bb47b2426aad4eff9e5, type: 3}
-  - name: PowerupB
+  - name: SpeedBoostSFX
     audioClip: {fileID: 8300000, guid: 373a1920e8db8bd4b8592e8bcf275925, type: 3}
   - name: Reload
     audioClip: {fileID: 8300000, guid: 73c5f25753c1e1a449c11bb02d012dff, type: 3}
@@ -4724,7 +4724,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -5003,7 +5003,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535

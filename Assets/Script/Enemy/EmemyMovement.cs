@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 public class EmemyMovement : MonoBehaviour
 {
     public Transform player;
@@ -11,35 +10,41 @@ public class EmemyMovement : MonoBehaviour
 
     private Rigidbody2D rb;
     private bool isGrounded;
-    private bool facingRight = true; // Assuming the enemy starts facing right
+    private bool facingRight = true;
+
+    public bool canMove = true; // ✅ Add this to toggle enemy movement
 
     void Start()
     {
+        if (!GameStartTimer.GameStarted || !canMove) return; // ✅ Prevent movement during intro
         rb = GetComponent<Rigidbody2D>();
-        player = GameObject.Find("Player").transform;
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            player = playerObj.transform;
+        }
     }
 
     void Update()
     {
+        if (!canMove || player == null) return; // ✅ Prevent movement during intro
+
         isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.1f, groundLayer);
 
-        // Calculate the direction towards the player
         Vector3 direction = player.position - transform.position;
-
-        // Normalize the direction to ensure constant speed
         direction.Normalize();
 
-        // Check if the enemy needs to flip
+        // Flip direction
         if ((direction.x > 0 && !facingRight) || (direction.x < 0 && facingRight))
         {
             facingRight = !facingRight;
             transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
         }
 
-        // Move the enemy horizontally
+        // Move
         rb.velocity = new Vector2(direction.x * speed, rb.velocity.y);
 
-        // Jump if grounded and the player is above
+        // Optional jump
         if (canJump && isGrounded && direction.y > 0)
         {
             rb.AddForce(Vector2.up * 5f, ForceMode2D.Impulse);

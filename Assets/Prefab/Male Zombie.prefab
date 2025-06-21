@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 9216261210469266650}
   - component: {fileID: 6711748710010050878}
   - component: {fileID: 4663516922386095911}
-  - component: {fileID: -686732899685056460}
   m_Layer: 0
   m_Name: Male Zombie
   m_TagString: Enemy
@@ -199,7 +198,6 @@ MonoBehaviour:
   DeathEffect: {fileID: 1421861700258247389, guid: b80893f0fc5ee854d942843b94c46343, type: 3}
   health: 100
   maxHealth: 100
-  player: {fileID: 0}
   abilities:
   - {fileID: 7980224137665157070, guid: 610c6bf4aba3dac489d4201d4827d13f, type: 3}
   - {fileID: 1078903438032168927, guid: 127e3f4846a77434ead2fbcea59f5fa6, type: 3}
@@ -210,10 +208,24 @@ MonoBehaviour:
   - {fileID: 1783799623699998644, guid: 8fe8ed9875e86b14ea23e9ac074496d9, type: 3}
   - {fileID: 1904511441252751371, guid: d750e9f2839ada54db703f9d82421a53, type: 3}
   - {fileID: 1904511441252751371, guid: d750e9f2839ada54db703f9d82421a53, type: 3}
+  - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
+  - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
+  - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
   - {fileID: 1783799623699998644, guid: 8fe8ed9875e86b14ea23e9ac074496d9, type: 3}
+  - {fileID: 7980224137665157070, guid: 610c6bf4aba3dac489d4201d4827d13f, type: 3}
+  - {fileID: 7980224137665157070, guid: 610c6bf4aba3dac489d4201d4827d13f, type: 3}
+  - {fileID: 7980224137665157070, guid: 610c6bf4aba3dac489d4201d4827d13f, type: 3}
   - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
-  - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
-  - {fileID: 727868893297621480, guid: 90d8b95dfa217c742896f9eb4422198a, type: 3}
+  - {fileID: 1078903438032168927, guid: 127e3f4846a77434ead2fbcea59f5fa6, type: 3}
+  - {fileID: 1078903438032168927, guid: 127e3f4846a77434ead2fbcea59f5fa6, type: 3}
+  - {fileID: 1078903438032168927, guid: 127e3f4846a77434ead2fbcea59f5fa6, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
+  - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
   - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
   - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
   - {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
@@ -236,22 +248,7 @@ MonoBehaviour:
   groundLayer:
     serializedVersion: 2
     m_Bits: 64
---- !u!114 &-686732899685056460
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2669550652678510637}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: be7db4c2fcb438a40aacdd4d1fa2ab3d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  coinPrefab: {fileID: 2270907252060560943, guid: a520483ad67952a47995bb71fb028a4f, type: 3}
-  groundLayer:
-    serializedVersion: 2
-    m_Bits: 64
+  canMove: 1
 --- !u!1 &3337841879669444889
 GameObject:
   m_ObjectHideFlags: 0
