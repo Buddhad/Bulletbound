@@ -8,7 +8,6 @@ public class PlayerHealth : MonoBehaviour
     public float health;
     public float maxHealth;
     public Image healthbar;
-    public float _damage = 20;
     [SerializeField] GameObject GameOverScreen;
     // Start is called before the first frame update
     void Start()
@@ -25,7 +24,7 @@ public class PlayerHealth : MonoBehaviour
             //If health is zero then show menu and destory the player
             gameObject.SetActive(false);
             ShowGameOverScreen();
-            AudioManager.Instance.PlaySFX("Hurt");
+            AudioManager.Instance.PlaySFX("Player_Die");
         }
     }
     void ShowGameOverScreen()
@@ -41,6 +40,7 @@ public class PlayerHealth : MonoBehaviour
         if (health > maxHealth)
             health = maxHealth;
     }
+    /*
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Enemy"))
@@ -48,7 +48,7 @@ public class PlayerHealth : MonoBehaviour
             TakeDamage(_damage);
         }
     }
-
+*/
     public void TakeDamage(float damage)
     {
         PlayerAbilityManager abilities = GetComponent<PlayerAbilityManager>();
@@ -58,7 +58,7 @@ public class PlayerHealth : MonoBehaviour
             return; // ignore damage
         }
 
-        AudioManager.Instance.PlaySFX("Die");
+        AudioManager.Instance.PlaySFX("Player_Damage");
         health -= damage;
     }
 }

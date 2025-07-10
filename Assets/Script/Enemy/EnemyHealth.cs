@@ -17,6 +17,7 @@ public class EnemyHealth : MonoBehaviour
     private float minKillX = -21.9f;
     private float maxKillX = 14.9f;
     public GameObject[] abilities;
+    private bool hasDealtDamage = false;
 
     private void Start()
     {
@@ -39,7 +40,7 @@ public class EnemyHealth : MonoBehaviour
     public void Die()
     {
         ScoreManager.AddScore(10);
-        AudioManager.Instance.PlaySFX("Hurt");
+        AudioManager.Instance.PlaySFX("Die_Enemy");
         SpawnRandomAbility();
         GameObject explode = Instantiate(DeathEffect, transform.position, Quaternion.identity);
         Destroy(explode, 2f); // ⏱️ adjust to match particle duration
@@ -56,14 +57,18 @@ public class EnemyHealth : MonoBehaviour
     // ✅ NEW: Handle continuous collision with player
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (other.gameObject.CompareTag("Player"))
+        if (other.gameObject.CompareTag("Player") && !hasDealtDamage)
         {
-            PlayerHealth playerHealth = other.gameObject.GetComponent<PlayerHealth>();
-            if (playerHealth != null)
+            if (!hasDealtDamage)
             {
-                // Deal damage immediately when enemy gets stuck with player
-                playerHealth.TakeDamage(damageAmount);
-                StartCoroutine(ContinuousDamageCoroutine(playerHealth));
+                PlayerHealth playerHealth = other.gameObject.GetComponent<PlayerHealth>();
+                if (playerHealth != null)
+                {
+                    // Deal damage immediately when enemy gets stuck with player
+                    playerHealth.TakeDamage(damageAmount);
+                    hasDealtDamage = true;
+                    //StartCoroutine(ContinuousDamageCoroutine(playerHealth));
+                }
             }
         }
     }
@@ -72,7 +77,7 @@ public class EnemyHealth : MonoBehaviour
     {
         if (other.gameObject.CompareTag("Player"))
         {
-            StopAllCoroutines(); // Stop damage when player leaves
+            hasDealtDamage = false;
         }
     }
 
@@ -86,6 +91,7 @@ public class EnemyHealth : MonoBehaviour
             if (playerHealth != null)
             {
                 playerHealth.TakeDamage(damageAmount);
+                AudioManager.Instance.PlaySFX("Player_Damage");
                 yield return new WaitForSeconds(damageCooldown);
             }
             else

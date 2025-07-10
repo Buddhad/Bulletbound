@@ -6,9 +6,9 @@ public class Bullet : MonoBehaviour
 {
     public float speed = 20f;
     public Rigidbody2D rb;
-    public float damage = 40;
+    public float damage = 40f;
     EnemyHealth enemy;
-    private bool hasHitTarget = false; // Add this flag
+    private bool hasHitTarget = false; // this flag
 
     private void Start()
     {
@@ -42,7 +42,7 @@ public class Bullet : MonoBehaviour
         {
             hasHitTarget = true; // Mark as hit to prevent double damage
             enemy.TakeDamage(damage);
-            AudioManager.Instance.PlaySFX("Die");
+            AudioManager.Instance.PlaySFX("Enemy_damage");
             Destroy(gameObject);
             return;
         }
