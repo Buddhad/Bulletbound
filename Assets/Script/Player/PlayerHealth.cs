@@ -41,19 +41,24 @@ public class PlayerHealth : MonoBehaviour
         if (health > maxHealth)
             health = maxHealth;
     }
-    private void OnCollisionEnter2D(Collision2D other)
+    private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.gameObject.CompareTag("Enemy"))
         {
-            PlayerAbilityManager abilities = GetComponent<PlayerAbilityManager>();
-            if (abilities != null && abilities.IsShieldActive())
-            {
-                Debug.Log("💥 Hit Blocked by Shield!");
-                return; // ignore damage
-            }
-
-            AudioManager.Instance.PlaySFX("Die");
-            health -= _damage;
+            TakeDamage(_damage);
         }
+    }
+
+    public void TakeDamage(float damage)
+    {
+        PlayerAbilityManager abilities = GetComponent<PlayerAbilityManager>();
+        if (abilities != null && abilities.IsShieldActive())
+        {
+            Debug.Log("💥 Hit Blocked by Shield!");
+            return; // ignore damage
+        }
+
+        AudioManager.Instance.PlaySFX("Die");
+        health -= damage;
     }
 }

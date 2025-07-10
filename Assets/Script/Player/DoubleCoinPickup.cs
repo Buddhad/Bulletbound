@@ -15,7 +15,6 @@ public class DoubleCoinPickup : MonoBehaviour
                 ability.ActivateDoubleCoins(duration);
                 
             }
-
             Destroy(gameObject);
         }
     }
