@@ -5963,7 +5963,7 @@ MonoBehaviour:
   player: {fileID: 2143732756962437541}
   timerText: {fileID: 1438352969}
   skipButton: {fileID: 290556365}
-  debugStartImmediately: 1
+  debugStartImmediately: 0
 --- !u!1 &1350449196
 GameObject:
   m_ObjectHideFlags: 0
@@ -12975,7 +12975,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -13005,11 +13005,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   anim: {fileID: 1302205599583786488}
   IsPlayerRight: 0
-  jumpableGround:
-    serializedVersion: 2
-    m_Bits: 64
   moveX: 0
-  jumpForce: 5
   moveSpeed: 5
 --- !u!114 &2104297169616194342
 MonoBehaviour:
@@ -13053,7 +13049,7 @@ GameObject:
   - component: {fileID: 5725115713090472790}
   - component: {fileID: 5725115713090472789}
   - component: {fileID: 5725115713090472791}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -13173,7 +13169,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speedBoostAmount: 2
-  jumpBoostAmount: 1.5
   fireRateBoostMultiplier: 0.5
   healthBoostAmount: 100
   shieldDuration: 5
@@ -13244,7 +13239,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2609891347587410823}
-  m_Layer: 6
+  m_Layer: 9
   m_Name: FirePoint
   m_TagString: Untagged
   m_Icon: {fileID: 4422084297763085224, guid: 0000000000000000d000000000000000, type: 0}

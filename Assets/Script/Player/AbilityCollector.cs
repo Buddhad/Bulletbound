@@ -28,10 +28,6 @@ public class AbilityCollector : MonoBehaviour
                 abilityManager.ActivateSpeedBoost(5f);
                 break;
 
-            case "Ability_Jump":
-                abilityManager.ActivateJumpBoost(5f);
-                break;
-
             case "Ability_FireRate":
                 abilityManager.ActivateFireRateBoost(0.1f, 5f);
                 break;

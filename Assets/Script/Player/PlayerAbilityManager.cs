@@ -7,63 +7,76 @@ public class PlayerAbilityManager : MonoBehaviour
     private PlayerHealth playerHealth;
     private PlayerShooter weaponScript;
 
+    // =========================================================
+    // ABILITY STATE
+    // =========================================================
+
     private bool isDoubleCoinActive = false;
     private bool isShieldActive = false;
 
-    [Header("Boost Values")]
-    public float speedBoostAmount = 2f;
-    public float jumpBoostAmount = 1.5f;
-    public float fireRateBoostMultiplier = 0.5f;
-    public float healthBoostAmount = 100f;
-
     private float scoreMultiplier = 1f;
 
-    private float originalSpeed;
-    private float originalJumpForce;
-    private float originalFireRate;
+    // =========================================================
+    // BOOST VALUES
+    // =========================================================
+
+    [Header("Speed Boost")]
+    public float speedBoostAmount = 2f;
+
+    [Header("Fire Rate Boost")]
+    public float fireRateBoostMultiplier = 0.5f;
+
+    [Header("Health Boost")]
+    public float healthBoostAmount = 100f;
 
     [Header("Shield")]
     public float shieldDuration = 5f;
 
+    // =========================================================
+    // ORIGINAL VALUES
+    // =========================================================
+
+    private float originalSpeed;
+    private float originalFireRate;
+
+    // =========================================================
+    // INITIALIZE
+    // =========================================================
+
     private void Awake()
     {
-        // Get required player components.
         playerMovement = GetComponent<PlayerMovement>();
         playerHealth = GetComponent<PlayerHealth>();
         weaponScript = GetComponent<PlayerShooter>();
 
-        // Check PlayerMovement
         if (playerMovement != null)
         {
             originalSpeed = playerMovement.moveSpeed;
-            originalJumpForce = playerMovement.jumpForce;
         }
         else
         {
-            Debug.LogError(
-                "PlayerAbilityManager: PlayerMovement is missing!",
+            Debug.LogWarning(
+                "PlayerAbilityManager: PlayerMovement not found.",
                 this
             );
         }
 
-        // Check PlayerShooter
         if (weaponScript != null)
         {
             originalFireRate = weaponScript.fireRate;
         }
         else
         {
-            Debug.LogError(
-                "PlayerAbilityManager: PlayerShooter is missing!",
+            Debug.LogWarning(
+                "PlayerAbilityManager: PlayerShooter not found.",
                 this
             );
         }
 
-        // Check PlayerHealth
         if (playerHealth == null)
         {
-            Debug.LogError(
-                "PlayerAbilityManager: PlayerHealth is missing!",
+            Debug.LogWarning(
+                "PlayerAbilityManager: PlayerHealth not found.",
                 this
             );
         }
@@ -99,31 +112,32 @@ public class PlayerAbilityManager : MonoBehaviour
     }
 
     // =========================================================
-    // JUMP BOOST
+    // FIRE RATE BOOST
     // =========================================================
 
-    public void ActivateJumpBoost(float duration)
+    public void ActivateFireRateBoost(
+        float newFireRate,
+        float duration)
     {
-        if (playerMovement == null)
+        if (weaponScript == null)
             return;
 
-        StopCoroutine(nameof(ResetJump));
+        StopCoroutine(nameof(ResetFireRate));
 
-        playerMovement.jumpForce =
-            originalJumpForce * jumpBoostAmount;
+        weaponScript.fireRate = newFireRate;
 
         PlaySFX("SpeedBoostSFX");
 
-        StartCoroutine(ResetJump(duration));
+        StartCoroutine(ResetFireRate(duration));
     }
 
-    private IEnumerator ResetJump(float duration)
+    private IEnumerator ResetFireRate(float duration)
     {
         yield return new WaitForSeconds(duration);
 
-        if (playerMovement != null)
+        if (weaponScript != null)
         {
-            playerMovement.jumpForce = originalJumpForce;
+            weaponScript.fireRate = originalFireRate;
         }
     }
 
@@ -133,66 +147,29 @@ public class PlayerAbilityManager : MonoBehaviour
 
     public void ActivateShield()
     {
-        if (isShieldActive)
-            return;
+        StopCoroutine(nameof(ResetShield));
 
         isShieldActive = true;
 
-        PlaySFX("SpeedBoostSFX");
+        PlaySFX("ShieldSFX");
 
-        Debug.Log("Shield Activated");
+        StartCoroutine(ResetShield(shieldDuration));
 
-        StartCoroutine(ShieldDuration());
+        Debug.Log("Shield Activated!");
     }
 
-    private IEnumerator ShieldDuration()
+    private IEnumerator ResetShield(float duration)
     {
-        yield return new WaitForSeconds(shieldDuration);
+        yield return new WaitForSeconds(duration);
 
         isShieldActive = false;
 
-        Debug.Log("Shield Deactivated");
+        Debug.Log("Shield Deactivated!");
     }
 
     public bool IsShieldActive()
     {
         return isShieldActive;
-    }
-
-    // =========================================================
-    // FIRE RATE BOOST
-    // =========================================================
-
-    public void ActivateFireRateBoost(
-        float newRate,
-        float duration)
-    {
-        if (weaponScript == null)
-            return;
-
-        StopCoroutine(nameof(ResetFireRate));
-
-        float originalRate = weaponScript.fireRate;
-
-        weaponScript.fireRate = newRate;
-
-        PlaySFX("SpeedBoostSFX");
-
-        StartCoroutine(
-            ResetFireRate(originalRate, duration)
-        );
-    }
-
-    private IEnumerator ResetFireRate(
-        float originalRate,
-        float duration)
-    {
-        yield return new WaitForSeconds(duration);
-
-        if (weaponScript != null)
-        {
-            weaponScript.fireRate = originalRate;
-        }
     }
 
     // =========================================================
@@ -206,7 +183,11 @@ public class PlayerAbilityManager : MonoBehaviour
 
         playerHealth.RestoreHealth(healthBoostAmount);
 
-        PlaySFX("SpeedBoostSFX");
+        PlaySFX("HealthSFX");
+
+        Debug.Log(
+            "Health restored by " + healthBoostAmount
+        );
     }
 
     // =========================================================
@@ -226,20 +207,17 @@ public class PlayerAbilityManager : MonoBehaviour
 
         Debug.Log("Double Coins Activated!");
 
-        StartCoroutine(
-            ResetDoubleCoins(duration)
-        );
+        StartCoroutine(ResetDoubleCoins(duration));
     }
 
     private IEnumerator ResetDoubleCoins(float duration)
     {
         yield return new WaitForSeconds(duration);
 
+        scoreMultiplier = 1f;
         isDoubleCoinActive = false;
 
-        scoreMultiplier = 1f;
-
-        Debug.Log("Double Coins Ended");
+        Debug.Log("Double Coins Deactivated!");
     }
 
     public float GetScoreMultiplier()
@@ -260,10 +238,7 @@ public class PlayerAbilityManager : MonoBehaviour
         else
         {
             Debug.LogWarning(
-                "PlayerAbilityManager: AudioManager.Instance " +
-                "is missing. SFX '" +
-                soundName +
-                "' was not played."
+                "PlayerAbilityManager: AudioManager.Instance is missing."
             );
         }
     }

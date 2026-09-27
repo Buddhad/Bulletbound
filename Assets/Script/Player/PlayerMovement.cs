@@ -1,119 +1,155 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
     private Rigidbody2D rbody;
-    private BoxCollider2D coll;
+
     public Animator anim;
-    Transform selfTransform;
-    public bool IsPlayerRight;
+
+    private Transform selfTransform;
     private PlayerShooter playerShooter;
-    [SerializeField] private LayerMask jumpableGround;
-    //private SpriteRenderer sprite;
+
+    public bool IsPlayerRight;
+
     public float moveX;
-    public float jumpForce = 5f;
     public float moveSpeed = 5f;
 
-    private enum MovementState { idel, jump, runing, falling }
+    private enum MovementState
+    {
+        idle,
+        running
+    }
 
-    //[SerializeField] private AudioSource jumpSoundEffect;
-
-    // Start is called before the first frame update
     private void Start()
     {
         anim = GetComponent<Animator>();
-        coll = GetComponent<BoxCollider2D>();
-        //sprite = GetComponent<SpriteRenderer>();
         rbody = GetComponent<Rigidbody2D>();
         playerShooter = GetComponent<PlayerShooter>();
+
         if (playerShooter == null)
         {
-            Debug.LogWarning("PlayerShooter script not found!");
+            Debug.LogWarning(
+                "PlayerShooter script not found!",
+                this
+            );
         }
+
         selfTransform = transform;
     }
 
-    // Update is called once per frame
     private void Update()
     {
-        if (playerShooter != null && playerShooter.isReloading) return; // skip movement update
-        if (Time.timeScale == 0f) return; // 🚫 Game is paused, do nothing
-        // It's work on unity input Manager 
-        moveX = Input.GetAxisRaw("Horizontal"); //if we don't want to slide so then we use raw
-        rbody.linearVelocity = new Vector2(moveX * moveSpeed, rbody.linearVelocity.y);
-
-        // Jump
-        if (Input.GetButtonDown("Jump") && IsGrounded())
+        // Don't move while reloading.
+        if (playerShooter != null &&
+            playerShooter.isReloading)
         {
-            AudioManager.Instance.PlaySFX("Jump");
-            rbody.linearVelocity = new Vector2(rbody.linearVelocity.x, jumpForce);
+            return;
         }
-        UpdateAnimation(); // Only runs if not paused
-        positionFixed();
+
+        // Don't move while paused.
+        if (Time.timeScale == 0f)
+            return;
+
+        // Horizontal movement.
+        moveX = Input.GetAxisRaw("Horizontal");
+
+        rbody.linearVelocity = new Vector2(
+            moveX * moveSpeed,
+            rbody.linearVelocity.y
+        );
+
+        UpdateAnimation();
+
+        PositionFixed();
     }
+
+    // =========================================================
+    // ANIMATION
+    // =========================================================
 
     public void UpdateAnimation()
     {
-        if (Time.timeScale == 0f) return; // ⛔ Don't update animation if paused
-        if (!this.enabled) return; // stop updating animation if movement script is disabled
+        if (Time.timeScale == 0f)
+            return;
+
+        if (!this.enabled)
+            return;
+
         MovementState state;
+
         if (moveX > 0f)
         {
-            state = MovementState.runing;
-            //sprite.flipX = false;
+            state = MovementState.running;
+
             PlayerMoveRight();
             IsPlayerRight = true;
         }
         else if (moveX < 0f)
         {
-            state = MovementState.runing;
-            //sprite.flipX = true; facing left
+            state = MovementState.running;
+
             PlayerMoveLeft();
             IsPlayerRight = false;
         }
         else
         {
-            state = MovementState.idel;
+            state = MovementState.idle;
         }
-        if (rbody.linearVelocity.y > .1f)
+
+        if (anim != null)
         {
-            state = MovementState.jump;
+            anim.SetInteger("state", (int)state);
         }
-        else if (rbody.linearVelocity.y < -.1f)
-        {
-            state = MovementState.falling;
-        }
-        anim.SetInteger("state", (int)state);
     }
 
-    private bool IsGrounded()
-    {
-        return Physics2D.BoxCast(coll.bounds.center, coll.bounds.size, 0f, Vector2.down, .1f, jumpableGround);
-    }
+    // =========================================================
+    // POSITION LIMIT
+    // =========================================================
 
-    void positionFixed()
+    private void PositionFixed()
     {
         transform.position = new Vector2(
-            Mathf.Clamp(transform.position.x, -21.9f, 14.9f),
+            Mathf.Clamp(
+                transform.position.x,
+                -21.9f,
+                14.9f
+            ),
             transform.position.y
         );
     }
 
+    // =========================================================
+    // PLAYER DIRECTION
+    // =========================================================
+
     public void PlayerMoveLeft()
     {
-        selfTransform.rotation = new Quaternion(0, -180, 0, 0);
+        selfTransform.rotation =
+            new Quaternion(0, -180, 0, 0);
     }
+
     public void PlayerMoveRight()
     {
-        selfTransform.rotation = new Quaternion(0, 0, 0, 0);
+        selfTransform.rotation =
+            new Quaternion(0, 0, 0, 0);
     }
+
+    // =========================================================
+    // FORCE IDLE
+    // =========================================================
+
     public void ForceIdle()
     {
         Debug.Log("ForceIdle called.");
+
         moveX = 0f;
-        rbody.linearVelocity = new Vector2(0f, rbody.linearVelocity.y); // stop movement
+
+        if (rbody != null)
+        {
+            rbody.linearVelocity =
+                new Vector2(0f, rbody.linearVelocity.y);
+        }
+
         UpdateAnimation();
     }
 }
