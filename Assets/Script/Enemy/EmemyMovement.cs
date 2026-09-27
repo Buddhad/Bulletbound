@@ -1,6 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+
 public class EmemyMovement : MonoBehaviour
 {
     [Header("Movement Settings")]
@@ -8,71 +7,149 @@ public class EmemyMovement : MonoBehaviour
     public bool canJump = true;
     public LayerMask groundLayer;
 
-    [Header("Control Settings")]
-    public bool canMove = true; // ✅ Add this to toggle enemy movement
+    [Header("Separation Settings")]
+    public LayerMask zombieLayer;
+    public float separationRadius = 0.7f;
+    public float separationStrength = 2f;
 
-    // Private variables - no need to assign in inspector
+    [Header("Control Settings")]
+    public bool canMove = true;
+
     private Transform player;
     private Rigidbody2D rb;
+
     private bool isGrounded;
     private bool facingRight = true;
     private bool playerFound = false;
 
     void Start()
     {
-        // FIXED: Remove the early return that prevents player finding
-        FindPlayer();
         rb = GetComponent<Rigidbody2D>();
+        FindPlayer();
     }
-    // ADDED: Dedicated method to find player
+
     void FindPlayer()
     {
         GameObject playerObj = GameObject.FindWithTag("Player");
+
         if (playerObj != null)
         {
             player = playerObj.transform;
             playerFound = true;
-            Debug.Log("Player found: " + playerObj.name);
         }
         else
         {
-            Debug.LogWarning("Player not found! Make sure player has 'Player' tag");
+            Debug.LogWarning(
+                "Player not found! Make sure player has the 'Player' tag."
+            );
+
             playerFound = false;
         }
     }
+
     void Update()
     {
-        // FIXED: Check game state and movement permission
-        if (!GameStartTimer.GameStarted || !canMove) return;
+        if (!GameStartTimer.GameStarted || !canMove)
+            return;
 
-        // FIXED: Check if player exists before using it
         if (!playerFound || player == null)
         {
-            FindPlayer(); // Try to find player again
+            FindPlayer();
             return;
         }
 
-        isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.1f, groundLayer);
+        // Ground check
+        isGrounded = Physics2D.Raycast(
+            transform.position,
+            Vector2.down,
+            0.1f,
+            groundLayer
+        );
 
-        Vector3 direction = player.position - transform.position;
-        direction.Normalize();
+        // Direction toward player
+        Vector2 direction =
+            ((Vector2)player.position - rb.position).normalized;
 
-        // Flip direction
-        if ((direction.x > 0 && !facingRight) || (direction.x < 0 && facingRight))
+        // Calculate separation from nearby zombies
+        Vector2 separation = GetSeparation();
+
+        // Combine chasing + separation
+        float finalX =
+            direction.x * speed +
+            separation.x * separationStrength;
+
+        // Flip
+        if ((finalX > 0 && !facingRight) ||
+            (finalX < 0 && facingRight))
         {
             facingRight = !facingRight;
-            transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
+
+            transform.localScale = new Vector3(
+                -transform.localScale.x,
+                transform.localScale.y,
+                transform.localScale.z
+            );
         }
 
-        // Move
-        rb.velocity = new Vector2(direction.x * speed, rb.velocity.y);
-
-        // Optional jump
-        if (canJump && isGrounded && direction.y > 0)
+        // Jump toward player
+        if (canJump && isGrounded && direction.y > 0.2f)
         {
-            rb.AddForce(Vector2.up * 5f, ForceMode2D.Impulse);
+            rb.AddForce(
+                Vector2.up * 5f,
+                ForceMode2D.Impulse
+            );
         }
+
+        // Physics movement
+        rb.linearVelocity = new Vector2(
+            finalX,
+            rb.linearVelocity.y
+        );
     }
 
+    Vector2 GetSeparation()
+    {
+        Vector2 separation = Vector2.zero;
 
+        Collider2D[] nearbyZombies =
+            Physics2D.OverlapCircleAll(
+                transform.position,
+                separationRadius,
+                zombieLayer
+            );
+
+        foreach (Collider2D zombie in nearbyZombies)
+        {
+            if (zombie.gameObject == gameObject)
+                continue;
+
+            Vector2 away =
+                (Vector2)transform.position -
+                (Vector2)zombie.transform.position;
+
+            float distance = away.magnitude;
+
+            if (distance > 0.01f)
+            {
+                // Stronger separation when very close
+                float strength =
+                    1f - Mathf.Clamp01(
+                        distance / separationRadius
+                    );
+
+                separation +=
+                    away.normalized * strength;
+            }
+        }
+
+        return separation;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.DrawWireSphere(
+            transform.position,
+            separationRadius
+        );
+    }
 }

@@ -1,64 +1,148 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
+    [Header("Bullet Settings")]
     public float speed = 20f;
-    public Rigidbody2D rb;
     public float damage = 40f;
-    EnemyHealth enemy;
-    private bool hasHitTarget = false; // this flag
+
+    private Rigidbody2D rb;
+    private bool hasHitTarget = false;
+
+    private void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+
+        if (rb == null)
+        {
+            Debug.LogError(
+                "Bullet: Rigidbody2D is missing!",
+                this
+            );
+        }
+    }
 
     private void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
-        rb.velocity = transform.right * speed;
+        if (rb != null)
+        {
+            rb.linearVelocity = transform.right * speed;
+        }
     }
+
+    // =========================================================
+    // COLLISION
+    // =========================================================
 
     private void OnCollisionEnter2D(Collision2D other)
     {
-        if (hasHitTarget) return; // Prevent double hits
+        if (hasHitTarget)
+            return;
+
         HandleCollision(other.gameObject);
     }
+
+    // =========================================================
+    // TRIGGER
+    // =========================================================
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (hasHitTarget) return; // Prevent double hits
+        if (hasHitTarget)
+            return;
+
         HandleCollision(other.gameObject);
     }
 
+    // =========================================================
+    // HANDLE COLLISION
+    // =========================================================
+
     private void HandleCollision(GameObject hitObject)
     {
+        if (hitObject == null)
+            return;
+
         Debug.Log("Bullet hit: " + hitObject.name);
+
+        // -----------------------------------------------------
+        // Don't damage the player
+        // -----------------------------------------------------
 
         if (hitObject.CompareTag("Player"))
         {
-            return; // Don't destroy when hitting player
+            return;
         }
 
-        enemy = hitObject.GetComponent<EnemyHealth>();
+        // -----------------------------------------------------
+        // Find EnemyHealth
+        // -----------------------------------------------------
+
+        EnemyHealth enemy =
+            hitObject.GetComponent<EnemyHealth>();
+
+        // If collider belongs to a child object,
+        // check the parent too.
+        if (enemy == null)
+        {
+            enemy =
+                hitObject.GetComponentInParent<EnemyHealth>();
+        }
+
         if (enemy != null)
         {
-            hasHitTarget = true; // Mark as hit to prevent double damage
+            hasHitTarget = true;
+
             enemy.TakeDamage(damage);
-            AudioManager.Instance.PlaySFX("Enemy_damage");
+
+            // Play damage sound only if AudioManager exists.
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX("Enemy_damage");
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "Bullet: AudioManager.Instance is missing. " +
+                    "Enemy damage sound was not played."
+                );
+            }
+
             Destroy(gameObject);
+
             return;
         }
 
-        // Don't destroy on ability collision
-        if (hitObject.CompareTag("Ability_DoubleCoins") ||
-            hitObject.CompareTag("Ability_FireRate") ||
-            hitObject.CompareTag("Ability_Speed") ||
-            hitObject.CompareTag("Ability_Shield") ||
-            hitObject.CompareTag("Ability_Health") ||
-            hitObject.CompareTag("Ability_Jump"))
+        // -----------------------------------------------------
+        // Ability collision
+        // -----------------------------------------------------
+
+        if (IsAbility(hitObject))
         {
+            // Bullet passes through abilities.
             return;
         }
 
-        hasHitTarget = true; // Mark as hit
+        // -----------------------------------------------------
+        // Other objects
+        // -----------------------------------------------------
+
+        hasHitTarget = true;
+
         Destroy(gameObject);
+    }
+
+    // =========================================================
+    // ABILITY CHECK
+    // =========================================================
+
+    private bool IsAbility(GameObject obj)
+    {
+        return obj.CompareTag("Ability_DoubleCoins") ||
+               obj.CompareTag("Ability_FireRate") ||
+               obj.CompareTag("Ability_Speed") ||
+               obj.CompareTag("Ability_Shield") ||
+               obj.CompareTag("Ability_Health") ||
+               obj.CompareTag("Ability_Jump");
     }
 }

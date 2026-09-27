@@ -1,18 +1,33 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class ParticleEffects : MonoBehaviour
 {
-    [SerializeField]
-    private ParticleSystem damageEffect;
+    [SerializeField] private ParticleSystem damageEffect;
 
-    private void Update()
+    private void Awake()
     {
-        StartEffect();
+        if (damageEffect == null)
+        {
+            Debug.LogWarning(
+                "ParticleEffects: Damage Effect is not assigned.",
+                this
+            );
+        }
     }
-    void StartEffect()
+
+    public void StartEffect()
     {
+        if (damageEffect == null)
+            return;
+
         damageEffect.Play();
+    }
+
+    public void StopEffect()
+    {
+        if (damageEffect == null)
+            return;
+
+        damageEffect.Stop();
     }
 }

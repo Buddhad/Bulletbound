@@ -42,13 +42,13 @@ public class PlayerMovement : MonoBehaviour
         if (Time.timeScale == 0f) return; // 🚫 Game is paused, do nothing
         // It's work on unity input Manager 
         moveX = Input.GetAxisRaw("Horizontal"); //if we don't want to slide so then we use raw
-        rbody.velocity = new Vector2(moveX * moveSpeed, rbody.velocity.y);
+        rbody.linearVelocity = new Vector2(moveX * moveSpeed, rbody.linearVelocity.y);
 
         // Jump
         if (Input.GetButtonDown("Jump") && IsGrounded())
         {
             AudioManager.Instance.PlaySFX("Jump");
-            rbody.velocity = new Vector2(rbody.velocity.x, jumpForce);
+            rbody.linearVelocity = new Vector2(rbody.linearVelocity.x, jumpForce);
         }
         UpdateAnimation(); // Only runs if not paused
         positionFixed();
@@ -77,11 +77,11 @@ public class PlayerMovement : MonoBehaviour
         {
             state = MovementState.idel;
         }
-        if (rbody.velocity.y > .1f)
+        if (rbody.linearVelocity.y > .1f)
         {
             state = MovementState.jump;
         }
-        else if (rbody.velocity.y < -.1f)
+        else if (rbody.linearVelocity.y < -.1f)
         {
             state = MovementState.falling;
         }
@@ -113,7 +113,7 @@ public class PlayerMovement : MonoBehaviour
     {
         Debug.Log("ForceIdle called.");
         moveX = 0f;
-        rbody.velocity = new Vector2(0f, rbody.velocity.y); // stop movement
+        rbody.linearVelocity = new Vector2(0f, rbody.linearVelocity.y); // stop movement
         UpdateAnimation();
     }
 }

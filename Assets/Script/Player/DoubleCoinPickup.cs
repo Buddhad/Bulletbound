@@ -6,16 +6,25 @@ public class DoubleCoinPickup : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("Player"))
+        if (!other.CompareTag("Player"))
+            return;
+
+        PlayerAbilityManager ability =
+            other.GetComponent<PlayerAbilityManager>();
+
+        if (ability != null)
         {
-            PlayerAbilityManager ability = other.GetComponent<PlayerAbilityManager>();
-            if (ability != null)
-            {
-                //ScoreManager.AddScore(10);
-                ability.ActivateDoubleCoins(duration);
-                
-            }
+            ability.ActivateDoubleCoins(duration);
+
             Destroy(gameObject);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "DoubleCoinPickup: PlayerAbilityManager " +
+                "was not found on Player.",
+                other.gameObject
+            );
         }
     }
 }

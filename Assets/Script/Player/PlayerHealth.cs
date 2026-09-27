@@ -1,64 +1,191 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class PlayerHealth : MonoBehaviour
 {
-    public float health;
-    public float maxHealth;
-    public Image healthbar;
-    [SerializeField] GameObject GameOverScreen;
-    // Start is called before the first frame update
-    void Start()
-    {
-        maxHealth = health;
-    }
+    [Header("Health")]
+    public float health = 100f;
+    public float maxHealth = 100f;
 
-    // Update is called once per frame
-    void Update()
+    [Header("UI")]
+    public Image healthbar;
+    [SerializeField] private GameObject GameOverScreen;
+
+    [Header("Debug")]
+    [Tooltip("Player cannot lose health when enabled.")]
+    public bool debugInvincible = false;
+
+    private bool isDead = false;
+
+    private void Awake()
     {
-        healthbar.fillAmount = Mathf.Clamp(health / maxHealth, 0, 1);
+        // Make sure max health is valid.
+        if (maxHealth <= 0)
+        {
+            maxHealth = health;
+        }
+
+        // Make sure health starts correctly.
         if (health <= 0)
         {
-            //If health is zero then show menu and destory the player
-            gameObject.SetActive(false);
-            ShowGameOverScreen();
-            AudioManager.Instance.PlaySFX("Player_Die");
+            health = maxHealth;
+        }
+
+        UpdateHealthBar();
+    }
+
+    private void Update()
+    {
+        UpdateHealthBar();
+
+        if (health <= 0 && !isDead)
+        {
+            Die();
         }
     }
-    void ShowGameOverScreen()
+
+    // =========================================================
+    // TAKE DAMAGE
+    // =========================================================
+
+    public void TakeDamage(float damage)
     {
-        GameOverScreen.SetActive(true);
-        Invoke("GameOver", 1f);
-        Time.timeScale = 0;
+        // DEBUG MODE
+        // Player can still be attacked, but takes no damage.
+        if (debugInvincible)
+        {
+            Debug.Log(
+                "DEBUG: Player damage blocked. " +
+                "Incoming damage: " + damage
+            );
+
+            return;
+        }
+
+        // Don't take damage after death.
+        if (isDead)
+            return;
+
+        // Check shield.
+        PlayerAbilityManager abilities =
+            GetComponent<PlayerAbilityManager>();
+
+        if (abilities != null &&
+            abilities.IsShieldActive())
+        {
+            Debug.Log("Hit blocked by Shield!");
+
+            return;
+        }
+
+        // Play damage sound safely.
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX("Player_Damage");
+        }
+
+        // Apply damage.
+        health -= damage;
+
+        // Prevent negative health.
+        health = Mathf.Max(health, 0f);
+
+        UpdateHealthBar();
+
+        Debug.Log(
+            "Player took " +
+            damage +
+            " damage. Health: " +
+            health
+        );
     }
+
+    // =========================================================
+    // RESTORE HEALTH
+    // =========================================================
 
     public void RestoreHealth(float amount)
     {
+        if (isDead)
+            return;
+
         health += amount;
-        if (health > maxHealth)
-            health = maxHealth;
+
+        health = Mathf.Clamp(
+            health,
+            0f,
+            maxHealth
+        );
+
+        UpdateHealthBar();
     }
-    /*
-    private void OnTriggerEnter2D(Collider2D other)
+
+    // =========================================================
+    // DEATH
+    // =========================================================
+
+    private void Die()
     {
-        if (other.gameObject.CompareTag("Enemy"))
+        if (isDead)
+            return;
+
+        isDead = true;
+
+        Debug.Log("Player died.");
+
+        // Disable player.
+        gameObject.SetActive(false);
+
+        ShowGameOverScreen();
+
+        // Play death sound safely.
+        if (AudioManager.Instance != null)
         {
-            TakeDamage(_damage);
+            AudioManager.Instance.PlaySFX("Player_Die");
         }
     }
-*/
-    public void TakeDamage(float damage)
+
+    // =========================================================
+    // GAME OVER
+    // =========================================================
+
+    private void ShowGameOverScreen()
     {
-        PlayerAbilityManager abilities = GetComponent<PlayerAbilityManager>();
-        if (abilities != null && abilities.IsShieldActive())
+        if (GameOverScreen != null)
         {
-            Debug.Log("💥 Hit Blocked by Shield!");
-            return; // ignore damage
+            GameOverScreen.SetActive(true);
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerHealth: GameOverScreen is not assigned.",
+                this
+            );
         }
 
-        AudioManager.Instance.PlaySFX("Player_Damage");
-        health -= damage;
+        Invoke(nameof(GameOver), 1f);
+
+        Time.timeScale = 0f;
+    }
+
+    private void GameOver()
+    {
+        Debug.Log("Game Over");
+    }
+
+    // =========================================================
+    // HEALTH BAR
+    // =========================================================
+
+    private void UpdateHealthBar()
+    {
+        if (healthbar == null)
+            return;
+
+        if (maxHealth <= 0)
+            return;
+
+        healthbar.fillAmount =
+            Mathf.Clamp01(health / maxHealth);
     }
 }

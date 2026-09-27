@@ -1,31 +1,66 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using TMPro;
 
 public class CoinDrop : MonoBehaviour
 {
-    public GameObject coinPrefab; // Assign your coin prefab in the Inspector
-    public LayerMask groundLayer; // Assign this in the Inspector (to your Ground layer)
+    [Header("Coin Settings")]
+    [SerializeField] private GameObject coinPrefab;
+    [SerializeField] private LayerMask groundLayer;
+    [SerializeField] private float raycastDistance = 50f;
+    [SerializeField] private float groundOffset = 0.2f;
+
     private bool hasDropped = false;
 
     public void DropCoin()
     {
-        if (hasDropped) return; // ⛔ prevent double drop
+        // Prevent multiple coin drops.
+        if (hasDropped)
+            return;
+
         hasDropped = true;
-        Vector2 origin = transform.position + Vector3.up;
-        RaycastHit2D hit = Physics2D.Raycast(origin, Vector2.down, 50f, groundLayer);
+
+        // Check coin prefab.
+        if (coinPrefab == null)
+        {
+            Debug.LogWarning(
+                "CoinDrop: Coin Prefab is not assigned.",
+                this
+            );
+
+            return;
+        }
+
+        Vector2 origin = (Vector2)transform.position + Vector2.up;
+
+        RaycastHit2D hit = Physics2D.Raycast(
+            origin,
+            Vector2.down,
+            raycastDistance,
+            groundLayer
+        );
 
         if (hit.collider != null)
         {
-            Vector2 coinPos = hit.point + Vector2.up * 0.2f;
-            Instantiate(coinPrefab, coinPos, Quaternion.identity);
+            Vector2 coinPosition =
+                hit.point + Vector2.up * groundOffset;
+
+            Instantiate(
+                coinPrefab,
+                coinPosition,
+                Quaternion.identity
+            );
         }
         else
         {
-            Debug.LogWarning("No ground detected below to drop the coin.");
-            Instantiate(coinPrefab, transform.position, Quaternion.identity); // fallback
+            Debug.LogWarning(
+                "CoinDrop: No ground detected below enemy. " +
+                "Dropping coin at enemy position."
+            );
+
+            Instantiate(
+                coinPrefab,
+                transform.position,
+                Quaternion.identity
+            );
         }
     }
-
 }

@@ -5,18 +5,30 @@ public class ScoreDisplay : MonoBehaviour
 {
     [SerializeField] private TextMeshProUGUI scoreText;
 
+    private int lastScore = -1;
+
     private void Start()
     {
-        UpdateScoreUI(); // Show 0 at start
+        UpdateScoreUI();
     }
 
     private void Update()
     {
-        UpdateScoreUI(); // Refresh score every frame
+        if (ScoreManager.CurrentScore != lastScore)
+        {
+            UpdateScoreUI();
+        }
     }
 
     private void UpdateScoreUI()
     {
-        scoreText.text = "Score: " + ScoreManager.CurrentScore;
+        if (scoreText == null)
+        {
+            Debug.LogWarning("ScoreDisplay: Score Text is not assigned.", this);
+            return;
+        }
+
+        lastScore = ScoreManager.CurrentScore;
+        scoreText.text = "Score: " + lastScore;
     }
 }
