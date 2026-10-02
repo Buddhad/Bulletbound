@@ -13,8 +13,8 @@ GameObject:
   - component: {fileID: 8116166819778826313}
   - component: {fileID: 3689201346599588384}
   m_Layer: 7
-  m_Name: Coin
-  m_TagString: Ability_Coin
+  m_Name: Double Coin
+  m_TagString: Ability_DoubleCoins
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

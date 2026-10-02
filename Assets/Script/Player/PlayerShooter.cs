@@ -12,12 +12,20 @@ public class PlayerShooter : MonoBehaviour
     [Header("Animation")]
     public Animator anim;
 
-    [Header("Ammo")]
+    [Header("Magazine Ammo")]
     public int maxAmmo = 14;
     public int ammoAmmount = 14;
 
+    [Header("Reserve Ammo")]
+    [SerializeField] private int reserveAmmo = 0;
+
+    public int ReserveAmmo => reserveAmmo;
+
     [Header("UI")]
     public TextMeshProUGUI showAmmo;
+
+    [Tooltip("Separate UI text for reserve ammunition.")]
+    public TextMeshProUGUI reserveAmmoText;
 
     [Header("Reload")]
     public float reloadDuration = 1f;
@@ -26,40 +34,52 @@ public class PlayerShooter : MonoBehaviour
     private bool isFiring = false;
     private float nextFireTime = 0f;
 
+    // =========================================================
+    // AWAKE
+    // =========================================================
+
     private void Awake()
     {
-        // Automatically find Animator on Player
-        // if it wasn't assigned in Inspector.
         if (anim == null)
         {
             anim = GetComponent<Animator>();
         }
 
-        // Make sure ammo starts within valid range.
-        ammoAmmount = Mathf.Clamp(ammoAmmount, 0, maxAmmo);
+        // Keep magazine ammo within valid range.
+        ammoAmmount = Mathf.Clamp(
+            ammoAmmount,
+            0,
+            maxAmmo
+        );
+
+        // Make sure reserve ammo isn't negative.
+        reserveAmmo = Mathf.Max(
+            reserveAmmo,
+            0
+        );
 
         ValidateReferences();
         UpdateAmmoUI();
     }
 
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
     private void Update()
     {
-        // Don't do anything while the game is paused.
         if (Time.timeScale == 0f)
             return;
 
-        // Don't shoot while reloading.
         if (isReloading)
             return;
 
         Shoot();
 
-        // Reload
-        if (Input.GetKeyDown(KeyCode.R) &&
-            !isReloading &&
-            ammoAmmount < maxAmmo)
+        // Reload with R.
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            StartCoroutine(Reload());
+            TryReload();
         }
     }
 
@@ -69,7 +89,6 @@ public class PlayerShooter : MonoBehaviour
 
     private void Shoot()
     {
-        // Check required references before shooting.
         if (shootingPoint == null)
         {
             Debug.LogError(
@@ -95,36 +114,54 @@ public class PlayerShooter : MonoBehaviour
             ammoAmmount > 0 &&
             Time.time >= nextFireTime)
         {
-            // Create bullet.
             Instantiate(
                 bulletPrefab,
                 shootingPoint.position,
                 transform.rotation
             );
 
-            // Play gun sound if AudioManager exists.
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX("Gun");
-            }
-            else
-            {
-                Debug.LogWarning(
-                    "PlayerShooter: AudioManager.Instance is missing."
-                );
             }
 
             isFiring = true;
 
             ammoAmmount--;
 
-            nextFireTime = Time.time + fireRate;
+            nextFireTime =
+                Time.time + fireRate;
 
-            // Currently there is no firing animation delay.
             isFiring = false;
 
             UpdateAmmoUI();
         }
+    }
+
+    // =========================================================
+    // TRY RELOAD
+    // =========================================================
+
+    private void TryReload()
+    {
+        if (isReloading)
+            return;
+
+        // Magazine already full.
+        if (ammoAmmount >= maxAmmo)
+        {
+            Debug.Log("Magazine already full.");
+            return;
+        }
+
+        // No reserve bullets.
+        if (reserveAmmo <= 0)
+        {
+            Debug.Log("No reserve ammunition.");
+            return;
+        }
+
+        StartCoroutine(Reload());
     }
 
     // =========================================================
@@ -139,37 +176,54 @@ public class PlayerShooter : MonoBehaviour
         if (ammoAmmount >= maxAmmo)
             yield break;
 
+        if (reserveAmmo <= 0)
+            yield break;
+
         isReloading = true;
 
         Debug.Log("Reloading...");
 
-        // Reload animation
+        // Reload animation.
         if (anim != null)
         {
-            anim.SetBool("isReloading", true);
+            anim.SetBool(
+                "isReloading",
+                true
+            );
         }
 
-        yield return new WaitForSeconds(reloadDuration);
+        yield return new WaitForSeconds(
+            reloadDuration
+        );
 
-        // Reload sound
+        // Calculate how many bullets are needed.
+        int bulletsNeeded =
+            maxAmmo - ammoAmmount;
+
+        // Only load bullets that are actually available.
+        int bulletsToLoad =
+            Mathf.Min(
+                bulletsNeeded,
+                reserveAmmo
+            );
+
+        ammoAmmount += bulletsToLoad;
+
+        reserveAmmo -= bulletsToLoad;
+
+        // Reload sound.
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX("Reload");
         }
-        else
-        {
-            Debug.LogWarning(
-                "PlayerShooter: AudioManager.Instance is missing."
-            );
-        }
-
-        // Refill ammo.
-        ammoAmmount = maxAmmo;
 
         // Stop reload animation.
         if (anim != null)
         {
-            anim.SetBool("isReloading", false);
+            anim.SetBool(
+                "isReloading",
+                false
+            );
         }
 
         isReloading = false;
@@ -177,7 +231,35 @@ public class PlayerShooter : MonoBehaviour
 
         UpdateAmmoUI();
 
-        Debug.Log("Reload complete.");
+        Debug.Log(
+            "Reload complete. Magazine: " +
+            ammoAmmount +
+            "/" +
+            maxAmmo +
+            " | Reserve: " +
+            reserveAmmo
+        );
+    }
+
+    // =========================================================
+    // ADD RESERVE AMMO
+    // =========================================================
+
+    public void AddReserveAmmo(int amount)
+    {
+        if (amount <= 0)
+            return;
+
+        reserveAmmo += amount;
+
+        UpdateAmmoUI();
+
+        Debug.Log(
+            "Purchased bullets: +" +
+            amount +
+            " | Reserve Ammo: " +
+            reserveAmmo
+        );
     }
 
     // =========================================================
@@ -186,23 +268,30 @@ public class PlayerShooter : MonoBehaviour
 
     private void UpdateAmmoUI()
     {
-        if (showAmmo == null)
-        {
-            // Don't generate a NullReferenceException.
-            return;
-        }
+        // Main ammo UI.
+        //
+        // Example:
+        // Bullet: 14/14 
 
-        if (ammoAmmount <= 0)
-        {
-            showAmmo.text = "Out of Ammo!";
-        }
-        else
+        if (showAmmo != null)
         {
             showAmmo.text =
                 "Bullet: " +
                 ammoAmmount +
                 "/" +
                 maxAmmo;
+        }
+
+        // Separate reserve ammo UI.
+        //
+        // Example:
+        // Reserve: 30
+
+        if (reserveAmmoText != null)
+        {
+            reserveAmmoText.text =
+                "Reserve: " +
+                reserveAmmo;
         }
     }
 
@@ -239,7 +328,15 @@ public class PlayerShooter : MonoBehaviour
         if (showAmmo == null)
         {
             Debug.LogWarning(
-                "PlayerShooter: Ammo UI (Show Ammo) is not assigned.",
+                "PlayerShooter: Main Ammo UI is not assigned.",
+                this
+            );
+        }
+
+        if (reserveAmmoText == null)
+        {
+            Debug.LogWarning(
+                "PlayerShooter: Reserve Ammo Text is not assigned.",
                 this
             );
         }

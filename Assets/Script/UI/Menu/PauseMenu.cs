@@ -1,75 +1,146 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class PauseMenu : MonoBehaviour
 {
-    [SerializeField] GameObject pauseMenu;
+    // =========================================================
+    // UI
+    // =========================================================
+
+    [Header("Pause Menu")]
+
+    // Main Pause Menu panel.
+    [SerializeField] private GameObject pauseMenu;
+
+
+    // =========================================================
+    // STATE
+    // =========================================================
+
+    // Stores whether the game is currently paused.
     private bool isPaused = false;
-    //[SerializeField]GameObject audioMenu;
+
+
+    // =========================================================
+    // UNITY UPDATE
+    // =========================================================
 
     private void Update()
     {
+        // Press Escape to pause/resume the game.
         if (Input.GetKeyDown(KeyCode.Escape))
         {
             TogglePause();
         }
     }
+
+
+    // =========================================================
+    // PAUSE
+    // =========================================================
+
     public void Pause()
     {
-        pauseMenu.SetActive(true);
-        Time.timeScale = 0;
+        // Show Pause Menu.
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetActive(true);
+        }
+
+        // Stop gameplay.
+        Time.timeScale = 0f;
+
+        // Store pause state.
         isPaused = true;
     }
-    public void Home()
-    {
-        SceneManager.LoadScene("MainMenu");
-        Time.timeScale = 1;
-        SceneManager.sceneLoaded += ResetGameState;
 
-    }
+
+    // =========================================================
+    // RESUME
+    // =========================================================
+
     public void Resume()
     {
-        // Resume the game timer if it exists
-        pauseMenu.SetActive(false);
-        Time.timeScale = 1;
-        isPaused = false;
-    }
-    public void Restart()
-    {
-        // Restart the game timer if it exists
-        GameStartTimer.GameStarted = false; // 🔁 Reset the static flag BEFORE scene reload
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        // Hide Pause Menu.
+        if (pauseMenu != null)
+        {
+            pauseMenu.SetActive(false);
+        }
+
+        // Resume gameplay.
         Time.timeScale = 1f;
+
+        // Update pause state.
         isPaused = false;
     }
 
-    public void AudioMenu()
-    {
-        //audioMenu.SetActive(true);
-        Time.timeScale = 0;
-    }
+
+    // =========================================================
+    // TOGGLE PAUSE
+    // =========================================================
 
     public void TogglePause()
     {
-        isPaused = !isPaused;
-
         if (isPaused)
         {
-            Time.timeScale = 0f;
-            pauseMenu.SetActive(true);
+            Resume();
         }
         else
         {
-            Time.timeScale = 1f;
-            pauseMenu.SetActive(false);
+            Pause();
         }
     }
-    void ResetGameState(Scene scene, LoadSceneMode mode)
+
+
+    // =========================================================
+    // HOME / MAIN MENU
+    // =========================================================
+
+    public void Home()
     {
-        GameStartTimer.GameStarted = false;
-        SceneManager.sceneLoaded -= ResetGameState;
+        // Always restore normal time before changing scenes.
+        Time.timeScale = 1f;
+
+        // Reset pause state.
+        isPaused = false;
+
+        // Load Main Menu.
+        SceneManager.LoadScene("MainMenu");
     }
 
+
+    // =========================================================
+    // RESTART
+    // =========================================================
+
+    public void Restart()
+    {
+        // Restore normal game speed.
+        Time.timeScale = 1f;
+
+        // Reset pause state.
+        isPaused = false;
+
+        // Reload the current Gameplay scene.
+        SceneManager.LoadScene(
+            SceneManager.GetActiveScene().buildIndex
+        );
+    }
+
+
+    // =========================================================
+    // AUDIO MENU
+    // =========================================================
+
+    public void AudioMenu()
+    {
+        // If you later add a separate Audio Menu,
+        // enable it here.
+        //
+        // Example:
+        // audioMenu.SetActive(true);
+
+        // Keep the game paused while the audio menu is open.
+        Time.timeScale = 0f;
+    }
 }

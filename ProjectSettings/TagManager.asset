@@ -15,6 +15,7 @@ TagManager:
   - Ability_FireRate
   - Ability_Shield
   - Ability_DoubleCoins
+  - Ability_Coin
   layers:
   - Default
   - TransparentFX
