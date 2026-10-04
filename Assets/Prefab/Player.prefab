@@ -48,10 +48,11 @@ GameObject:
   - component: {fileID: 257489191151956012}
   - component: {fileID: 6255304532104305875}
   - component: {fileID: 6933487178736677345}
-  - component: {fileID: 4270099306248675918}
   - component: {fileID: 6164279889594221711}
   - component: {fileID: 8337905280818734791}
   - component: {fileID: 5247786187770161490}
+  - component: {fileID: -3346023122965108530}
+  - component: {fileID: 3787865327343881342}
   m_Layer: 9
   m_Name: Player
   m_TagString: Player
@@ -334,19 +335,6 @@ MonoBehaviour:
   reserveAmmoText: {fileID: 0}
   reloadDuration: 1
   isReloading: 0
---- !u!114 &4270099306248675918
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6819281809381510097}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b77af6a98968013489ac9e5e5d231698, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  healAmount: 25
 --- !u!114 &6164279889594221711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -389,3 +377,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a00a52c2c70a7ff48898efd38c48f6e7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &-3346023122965108530
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6819281809381510097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ae9532d98a36e0489606e2d2e815fa8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PersistentPlayer
+--- !u!114 &3787865327343881342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6819281809381510097}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 893095cc45d28ad44b5ac9dfa5093a8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CoinManager
+  coins: 0

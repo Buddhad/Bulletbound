@@ -3,11 +3,16 @@ using UnityEngine;
 public class Bullet : MonoBehaviour
 {
     [Header("Bullet Settings")]
-    public float speed = 20f;
-    public float damage = 40f;
+    [SerializeField] private float speed = 20f;
+    [SerializeField] private float damage = 40f;
 
     private Rigidbody2D rb;
     private bool hasHitTarget = false;
+
+
+    // =========================================================
+    // AWAKE
+    // =========================================================
 
     private void Awake()
     {
@@ -22,25 +27,33 @@ public class Bullet : MonoBehaviour
         }
     }
 
+
+    // =========================================================
+    // START
+    // =========================================================
+
     private void Start()
     {
         if (rb != null)
         {
-            rb.linearVelocity = transform.right * speed;
+            rb.linearVelocity =
+                transform.right * speed;
         }
     }
+
 
     // =========================================================
     // COLLISION
     // =========================================================
 
-    private void OnCollisionEnter2D(Collision2D other)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
         if (hasHitTarget)
             return;
 
-        HandleCollision(other.gameObject);
+        HandleCollision(collision.gameObject);
     }
+
 
     // =========================================================
     // TRIGGER
@@ -54,6 +67,7 @@ public class Bullet : MonoBehaviour
         HandleCollision(other.gameObject);
     }
 
+
     // =========================================================
     // HANDLE COLLISION
     // =========================================================
@@ -63,58 +77,25 @@ public class Bullet : MonoBehaviour
         if (hitObject == null)
             return;
 
-        Debug.Log("Bullet hit: " + hitObject.name);
+
+        Debug.Log(
+            "Bullet hit: " + hitObject.name
+        );
+
 
         // -----------------------------------------------------
-        // Don't damage the player
+        // PLAYER
         // -----------------------------------------------------
 
         if (hitObject.CompareTag("Player"))
         {
+            // Never damage the player.
             return;
         }
 
-        // -----------------------------------------------------
-        // Find EnemyHealth
-        // -----------------------------------------------------
-
-        EnemyHealth enemy =
-            hitObject.GetComponent<EnemyHealth>();
-
-        // If collider belongs to a child object,
-        // check the parent too.
-        if (enemy == null)
-        {
-            enemy =
-                hitObject.GetComponentInParent<EnemyHealth>();
-        }
-
-        if (enemy != null)
-        {
-            hasHitTarget = true;
-
-            enemy.TakeDamage(damage);
-
-            // Play damage sound only if AudioManager exists.
-            if (AudioManager.Instance != null)
-            {
-                AudioManager.Instance.PlaySFX("Enemy_damage");
-            }
-            else
-            {
-                Debug.LogWarning(
-                    "Bullet: AudioManager.Instance is missing. " +
-                    "Enemy damage sound was not played."
-                );
-            }
-
-            Destroy(gameObject);
-
-            return;
-        }
 
         // -----------------------------------------------------
-        // Ability collision
+        // ABILITIES
         // -----------------------------------------------------
 
         if (IsAbility(hitObject))
@@ -123,8 +104,57 @@ public class Bullet : MonoBehaviour
             return;
         }
 
+
         // -----------------------------------------------------
-        // Other objects
+        // ENEMY
+        // -----------------------------------------------------
+
+        EnemyHealth enemy =
+            hitObject.GetComponent<EnemyHealth>();
+
+
+        // If the collider belongs to a child object,
+        // check the parent.
+        if (enemy == null)
+        {
+            enemy =
+                hitObject.GetComponentInParent<EnemyHealth>();
+        }
+
+
+        if (enemy != null)
+        {
+            hasHitTarget = true;
+
+
+            // Deal damage.
+            enemy.TakeDamage(damage);
+
+
+            // Play enemy damage sound.
+            if (AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySFX(
+                    "Enemy_damage"
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "Bullet: AudioManager.Instance is missing."
+                );
+            }
+
+
+            // Destroy bullet.
+            Destroy(gameObject);
+
+            return;
+        }
+
+
+        // -----------------------------------------------------
+        // OTHER OBJECTS
         // -----------------------------------------------------
 
         hasHitTarget = true;
@@ -132,13 +162,15 @@ public class Bullet : MonoBehaviour
         Destroy(gameObject);
     }
 
+
     // =========================================================
     // ABILITY CHECK
     // =========================================================
 
     private bool IsAbility(GameObject obj)
     {
-        return obj.CompareTag("Ability_DoubleCoins") ||
+        return obj.CompareTag("Ability_Coin") ||
+               obj.CompareTag("Ability_DoubleCoins") ||
                obj.CompareTag("Ability_FireRate") ||
                obj.CompareTag("Ability_Speed") ||
                obj.CompareTag("Ability_Shield") ||

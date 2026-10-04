@@ -16,6 +16,7 @@ TagManager:
   - Ability_Shield
   - Ability_DoubleCoins
   - Ability_Coin
+  - PlayerSpawn
   layers:
   - Default
   - TransparentFX

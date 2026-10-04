@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class WaveSpawner : MonoBehaviour
 {
@@ -15,7 +16,7 @@ public class WaveSpawner : MonoBehaviour
     // Number of enemies spawned in each wave.
     public int enemiesPerWave = 5;
 
-    // Total number of waves in the level.
+    // Total number of waves in this level.
     public int totalWaves = 5;
 
 
@@ -33,13 +34,23 @@ public class WaveSpawner : MonoBehaviour
 
 
     // =========================================================
-    // LEVEL COMPLETE
+    // GAME COMPLETE UI
     // =========================================================
 
-    [Header("Level Complete")]
+    [Header("Game Complete")]
 
-    // UI shown after all waves are completed.
-    [SerializeField] private GameObject LevelCompleteScreen;
+    // This panel is shown ONLY when there is
+    // no next scene in Build Settings.
+    //
+    // Example:
+    //
+    // Level-5
+    //    ↓
+    // No Build Index 6
+    //    ↓
+    // GameComplete Panel
+    //
+    [SerializeField] private GameObject gameCompletePanel;
 
 
     // =========================================================
@@ -49,8 +60,8 @@ public class WaveSpawner : MonoBehaviour
     // Current wave number.
     private int currentWave = 0;
 
-    // Prevents multiple wave coroutines
-    // from running at the same time.
+    // Prevents multiple waves from starting
+    // at the same time.
     private bool wavesStarted = false;
 
 
@@ -62,10 +73,7 @@ public class WaveSpawner : MonoBehaviour
     {
         // GameStartTimer has been removed.
         //
-        // Gameplay now starts immediately when
-        // the Gameplay scene is loaded.
-        //
-        // Therefore, start Wave 1 directly.
+        // Gameplay starts immediately.
         StartWave();
     }
 
@@ -94,8 +102,6 @@ public class WaveSpawner : MonoBehaviour
         // PREVENT DUPLICATE WAVE START
         // -----------------------------------------------------
 
-        // This prevents two wave coroutines from
-        // being started at the same time.
         if (wavesStarted)
         {
             return;
@@ -106,7 +112,7 @@ public class WaveSpawner : MonoBehaviour
         wavesStarted = true;
 
 
-        // Move to the next wave.
+        // Move to next wave.
         currentWave++;
 
 
@@ -145,8 +151,6 @@ public class WaveSpawner : MonoBehaviour
                 "WaveSpawner: Enemy Prefab is not assigned!"
             );
 
-            // Allow the system to be started again
-            // if the reference is fixed.
             wavesStarted = false;
 
             yield break;
@@ -190,15 +194,6 @@ public class WaveSpawner : MonoBehaviour
         // CALCULATE SPAWN DELAY
         // =====================================================
 
-        // Example:
-        //
-        // Wave Duration = 10 seconds
-        // Enemies = 5
-        //
-        // 10 / 5 = 2 seconds
-        //
-        // Therefore, one enemy spawns every 2 seconds.
-
         float spawnDelay =
             waveDuration / enemiesPerWave;
 
@@ -209,7 +204,7 @@ public class WaveSpawner : MonoBehaviour
 
         for (int i = 0; i < enemiesPerWave; i++)
         {
-            // Select a random spawn point.
+            // Select random spawn point.
             int randomIndex =
                 Random.Range(
                     0,
@@ -230,7 +225,7 @@ public class WaveSpawner : MonoBehaviour
                 );
 
 
-                // Wait before attempting the next spawn.
+                // Wait before trying again.
                 yield return new WaitForSeconds(
                     spawnDelay
                 );
@@ -259,7 +254,7 @@ public class WaveSpawner : MonoBehaviour
             );
 
 
-            // Wait before spawning the next enemy.
+            // Wait before spawning next enemy.
             yield return new WaitForSeconds(
                 spawnDelay
             );
@@ -284,8 +279,7 @@ public class WaveSpawner : MonoBehaviour
         );
 
 
-        // Continue waiting while at least one Enemy
-        // still exists in the scene.
+        // Wait until no Enemy objects remain.
         while (
             GameObject.FindGameObjectsWithTag("Enemy").Length > 0
         )
@@ -311,16 +305,16 @@ public class WaveSpawner : MonoBehaviour
 
         if (currentWave < totalWaves)
         {
-            // Allow StartWave() to start another wave.
+            // Allow another wave to start.
             wavesStarted = false;
 
 
-            // Start the next wave.
+            // Start next wave.
             StartWave();
         }
         else
         {
-            // All waves are completed.
+            // All waves have been completed.
             yield return StartCoroutine(
                 CompleteLevel()
             );
@@ -329,7 +323,7 @@ public class WaveSpawner : MonoBehaviour
 
 
     // =========================================================
-    // LEVEL COMPLETE
+    // COMPLETE LEVEL
     // =========================================================
 
     private IEnumerator CompleteLevel()
@@ -345,10 +339,13 @@ public class WaveSpawner : MonoBehaviour
         // WAIT FOR REMAINING COINS
         // =====================================================
 
-        // Enemies now ONLY drop coins.
+        // Your physical coin uses:
         //
-        // Abilities are no longer dropped by enemies,
-        // so we do NOT need to check the Ability layer.
+        // Tag = Ability_Coin
+        //
+        // Therefore we wait until all physical coins
+        // have been collected.
+
         Debug.Log(
             "Waiting for remaining coins..."
         );
@@ -356,15 +353,15 @@ public class WaveSpawner : MonoBehaviour
 
         while (true)
         {
-            // Check whether any Coin remains in the scene.
+            // Check whether any physical Ability_Coin
+            // remains in the scene.
             bool coinsExist =
                 GameObject.FindGameObjectsWithTag(
-                    "Coin"
+                    "Ability_Coin"
                 ).Length > 0;
 
 
-            // If there are no coins left,
-            // continue to level completion.
+            // No coins remaining.
             if (!coinsExist)
             {
                 break;
@@ -385,26 +382,26 @@ public class WaveSpawner : MonoBehaviour
         // STOP PLAYER
         // =====================================================
 
-        // Find the Player.
+        // Find persistent Player.
         GameObject player =
             GameObject.FindWithTag("Player");
 
 
         if (player != null)
         {
-            // Get PlayerMovement.
             PlayerMovement movement =
                 player.GetComponent<PlayerMovement>();
 
 
             if (movement != null)
             {
-                // Stop the Player's horizontal movement.
+                // Stop horizontal movement.
                 movement.ForceIdle();
 
 
-                // Disable Player movement.
-                movement.enabled = false;
+                // Disable movement while the level
+                // transition is happening.
+                movement.SetMovementEnabled(false);
             }
         }
         else
@@ -419,8 +416,9 @@ public class WaveSpawner : MonoBehaviour
         // SMALL DELAY
         // =====================================================
 
-        // Give the game a short delay before
-        // showing the Level Complete screen.
+        // Give the player a short moment before
+        // loading the next level or showing
+        // the Game Complete panel.
         yield return new WaitForSeconds(2f);
 
 
@@ -428,7 +426,7 @@ public class WaveSpawner : MonoBehaviour
         // UPDATE HIGH SCORE
         // =====================================================
 
-        // Get previously saved High Score.
+        // Get saved High Score.
         int previousHighScore =
             PlayerPrefs.GetInt(
                 "HighScore",
@@ -436,19 +434,18 @@ public class WaveSpawner : MonoBehaviour
             );
 
 
-        // Check whether the current score
-        // is higher than the saved score.
+        // Check whether current score is higher.
         if (ScoreManager.CurrentScore >
             previousHighScore)
         {
-            // Save the new High Score.
+            // Save new High Score.
             PlayerPrefs.SetInt(
                 "HighScore",
                 ScoreManager.CurrentScore
             );
 
 
-            // Save PlayerPrefs immediately.
+            // Save immediately.
             PlayerPrefs.Save();
 
 
@@ -460,24 +457,131 @@ public class WaveSpawner : MonoBehaviour
 
 
         // =====================================================
-        // SHOW LEVEL COMPLETE SCREEN
+        // CHECK NEXT SCENE
         // =====================================================
 
-        if (LevelCompleteScreen != null)
+        int currentSceneIndex =
+            SceneManager.GetActiveScene().buildIndex;
+
+
+        int nextSceneIndex =
+            currentSceneIndex + 1;
+
+
+        Debug.Log(
+            "Current Build Index: " +
+            currentSceneIndex
+        );
+
+
+        Debug.Log(
+            "Next Build Index: " +
+            nextSceneIndex
+        );
+
+
+        // =====================================================
+        // CHECK IF THIS IS THE FINAL SCENE
+        // =====================================================
+
+        // sceneCountInBuildSettings tells us how many
+        // scenes are available in Build Settings.
+        //
+        // Example:
+        //
+        // 0 Main Menu
+        // 1 Level-1
+        // 2 Level-2
+        // 3 Level-3
+        // 4 Level-4
+        // 5 Level-5
+        //
+        // sceneCountInBuildSettings = 6
+        //
+        // Level-5:
+        // currentSceneIndex = 5
+        // nextSceneIndex = 6
+        //
+        // 6 >= 6
+        // Therefore there is NO next scene.
+
+
+        if (
+            nextSceneIndex >=
+            SceneManager.sceneCountInBuildSettings
+        )
         {
-            // Enable the Level Complete UI.
-            LevelCompleteScreen.SetActive(true);
+            // -------------------------------------------------
+            // FINAL LEVEL COMPLETED
+            // -------------------------------------------------
+
+            Debug.Log(
+                "No next level exists."
+            );
 
 
             Debug.Log(
-                "Level Complete Screen displayed."
+                "ALL LEVELS COMPLETED!"
             );
+
+
+            // -------------------------------------------------
+            // SHOW GAME COMPLETE PANEL
+            // -------------------------------------------------
+
+            if (gameCompletePanel != null)
+            {
+                gameCompletePanel.SetActive(true);
+
+
+                Debug.Log(
+                    "Game Complete Panel displayed."
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "WaveSpawner: Game Complete Panel " +
+                    "is not assigned."
+                );
+            }
+
+
+            // IMPORTANT:
+            //
+            // CompleteLevel() is an IEnumerator.
+            //
+            // Therefore we MUST use:
+            //
+            // yield break;
+            //
+            // NOT:
+            //
+            // return;
+            //
+            // This ends the coroutine correctly.
+            yield break;
         }
-        else
-        {
-            Debug.LogWarning(
-                "WaveSpawner: LevelCompleteScreen is not assigned."
-            );
-        }
+
+
+        // =====================================================
+        // NEXT LEVEL EXISTS
+        // =====================================================
+
+        Debug.Log(
+            "Next level exists."
+        );
+
+
+        Debug.Log(
+            "Loading next level. Build Index: " +
+            nextSceneIndex
+        );
+
+
+        // Load next level.
+        SceneManager.LoadScene(
+            nextSceneIndex
+        );
     }
 }

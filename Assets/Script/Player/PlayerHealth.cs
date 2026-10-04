@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class PlayerHealth : MonoBehaviour
 {
@@ -22,13 +23,12 @@ public class PlayerHealth : MonoBehaviour
 
     [Header("UI")]
 
-    // Image used as the health bar.
+    // Actual green health fill Image.
     //
-    // Make sure the Image Type is set to Filled
-    // in the Inspector.
+    // This is found automatically from the current level.
     public Image healthbar;
 
-    // Game Over UI displayed when the Player dies.
+    // Game Over panel from the current level Canvas.
     [SerializeField] private GameObject GameOverScreen;
 
 
@@ -39,11 +39,6 @@ public class PlayerHealth : MonoBehaviour
     [Header("Debug")]
 
     [Tooltip("Player cannot lose health when enabled.")]
-
-    // Useful while testing the game.
-    //
-    // TRUE  = Player cannot take damage.
-    // FALSE = Normal health behavior.
     public bool debugInvincible = false;
 
 
@@ -51,9 +46,6 @@ public class PlayerHealth : MonoBehaviour
     // INTERNAL REFERENCES
     // =========================================================
 
-    // Reference to PlayerAbilityManager.
-    //
-    // Used to check whether Shield is active.
     private PlayerAbilityManager abilityManager;
 
 
@@ -61,30 +53,23 @@ public class PlayerHealth : MonoBehaviour
     // INTERNAL STATE
     // =========================================================
 
-    // Prevents the Player from dying multiple times.
     private bool isDead = false;
 
 
     // =========================================================
-    // INITIALIZE
+    // AWAKE
     // =========================================================
 
     private void Awake()
     {
-        // -----------------------------------------------------
-        // GET ABILITY MANAGER
-        // -----------------------------------------------------
-
-        abilityManager =
-            GetComponent<PlayerAbilityManager>();
+        // Get PlayerAbilityManager from the persistent Player.
+        abilityManager = GetComponent<PlayerAbilityManager>();
 
 
         // -----------------------------------------------------
         // VALIDATE MAX HEALTH
         // -----------------------------------------------------
 
-        // If maxHealth is invalid, use the current
-        // health value as the maximum.
         if (maxHealth <= 0f)
         {
             maxHealth = health;
@@ -95,24 +80,270 @@ public class PlayerHealth : MonoBehaviour
         // VALIDATE STARTING HEALTH
         // -----------------------------------------------------
 
-        // If health is invalid, start with full health.
         if (health <= 0f)
         {
             health = maxHealth;
         }
 
 
-        // Make sure health never starts above max health.
-        health =
-            Mathf.Clamp(
-                health,
-                0f,
-                maxHealth
-            );
+        // Make sure health is inside valid range.
+        health = Mathf.Clamp(
+            health,
+            0f,
+            maxHealth
+        );
 
 
-        // Update the health bar immediately.
+        // Do NOT search for UI here.
+        //
+        // The Player persists between levels,
+        // but the Canvas belongs to each level.
+    }
+
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    private void Start()
+    {
+        // Build Index 0 = Main Menu.
+        //
+        // Main Menu doesn't need gameplay Health UI.
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            return;
+        }
+
+
+        // Find the current level's UI.
+        FindHealthUI();
+
+
+        // Display current health.
         UpdateHealthBar();
+    }
+
+
+    // =========================================================
+    // ENABLE
+    // =========================================================
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+
+    // =========================================================
+    // DISABLE
+    // =========================================================
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+
+    // =========================================================
+    // SCENE LOADED
+    // =========================================================
+
+    private void OnSceneLoaded(
+        Scene scene,
+        LoadSceneMode mode
+    )
+    {
+        // Ignore Main Menu.
+        if (scene.buildIndex == 0)
+        {
+            return;
+        }
+
+
+        Debug.Log(
+            "PlayerHealth: Gameplay scene loaded: " +
+            scene.name
+        );
+
+
+        // Find the new scene's HealthBar UI.
+        FindHealthUI();
+
+
+        // Update the new scene's HealthBar
+        // using the persistent Player health.
+        UpdateHealthBar();
+
+
+        // Reset death state for the new level.
+        isDead = false;
+    }
+
+
+    // =========================================================
+    // FIND HEALTH UI
+    // =========================================================
+
+    private void FindHealthUI()
+    {
+        // Clear references from the previous scene.
+        healthbar = null;
+        GameOverScreen = null;
+
+
+        // -----------------------------------------------------
+        // FIND GREEN HEALTH FILL
+        // -----------------------------------------------------
+
+        // Your hierarchy is:
+        //
+        // HealthBar
+        // ├── Border
+        // ├── Red
+        // └── Green
+        //
+        // Green contains the Image component with:
+        // Image Type = Filled
+        // Fill Method = Horizontal
+
+        healthbar = FindUIObject<Image>("Green");
+
+
+        // -----------------------------------------------------
+        // FIND GAME OVER
+        // -----------------------------------------------------
+
+        GameOverScreen = FindGameObject("GameOver");
+
+
+        // -----------------------------------------------------
+        // DEBUG
+        // -----------------------------------------------------
+
+        if (healthbar != null)
+        {
+            Debug.Log(
+                "PlayerHealth: Green health bar connected."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerHealth: Green health image was not found in scene: " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+
+
+        if (GameOverScreen != null)
+        {
+            Debug.Log(
+                "PlayerHealth: GameOver connected."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerHealth: GameOver was not found in scene: " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+    }
+
+
+    // =========================================================
+    // FIND UI COMPONENT
+    // =========================================================
+
+    private T FindUIObject<T>(string objectName)
+        where T : Component
+    {
+        T[] objects =
+            Resources.FindObjectsOfTypeAll<T>();
+
+
+        foreach (T obj in objects)
+        {
+            if (obj == null)
+            {
+                continue;
+            }
+
+
+            GameObject uiObject =
+                obj.gameObject;
+
+
+            // Ignore prefab assets.
+            if (!uiObject.scene.IsValid())
+            {
+                continue;
+            }
+
+
+            // Ignore unloaded scenes.
+            if (!uiObject.scene.isLoaded)
+            {
+                continue;
+            }
+
+
+            // Find exact GameObject name.
+            if (uiObject.name == objectName)
+            {
+                return obj;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    // =========================================================
+    // FIND GAMEOBJECT
+    // =========================================================
+
+    private GameObject FindGameObject(
+        string objectName
+    )
+    {
+        GameObject[] objects =
+            Resources.FindObjectsOfTypeAll<GameObject>();
+
+
+        foreach (GameObject obj in objects)
+        {
+            if (obj == null)
+            {
+                continue;
+            }
+
+
+            // Ignore prefab assets.
+            if (!obj.scene.IsValid())
+            {
+                continue;
+            }
+
+
+            // Ignore unloaded scenes.
+            if (!obj.scene.isLoaded)
+            {
+                continue;
+            }
+
+
+            // Find exact GameObject name.
+            if (obj.name == objectName)
+            {
+                return obj;
+            }
+        }
+
+
+        return null;
     }
 
 
@@ -122,11 +353,11 @@ public class PlayerHealth : MonoBehaviour
 
     private void Update()
     {
-        // Keep the health bar synchronized.
+        // Keep health bar synchronized.
         UpdateHealthBar();
 
 
-        // Check whether the Player has reached zero health.
+        // Check for death.
         if (health <= 0f && !isDead)
         {
             Die();
@@ -144,8 +375,6 @@ public class PlayerHealth : MonoBehaviour
         // DEBUG INVINCIBILITY
         // -----------------------------------------------------
 
-        // When enabled, attacks are detected but the Player
-        // does not actually lose health.
         if (debugInvincible)
         {
             Debug.Log(
@@ -162,25 +391,26 @@ public class PlayerHealth : MonoBehaviour
         // CHECK DEATH
         // -----------------------------------------------------
 
-        // Don't allow damage after the Player has died.
         if (isDead)
+        {
             return;
+        }
 
 
         // -----------------------------------------------------
         // VALIDATE DAMAGE
         // -----------------------------------------------------
 
-        // Ignore zero or negative damage.
         if (damage <= 0f)
+        {
             return;
+        }
 
 
         // -----------------------------------------------------
         // SHIELD CHECK
         // -----------------------------------------------------
 
-        // If Shield is currently active, block the damage.
         if (abilityManager != null &&
             abilityManager.IsShieldActive())
         {
@@ -196,7 +426,6 @@ public class PlayerHealth : MonoBehaviour
         // DAMAGE SOUND
         // -----------------------------------------------------
 
-        // Play the Player damage sound.
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(
@@ -212,15 +441,14 @@ public class PlayerHealth : MonoBehaviour
         health -= damage;
 
 
-        // Prevent health from becoming negative.
-        health =
-            Mathf.Max(
-                health,
-                0f
-            );
+        // Prevent negative health.
+        health = Mathf.Max(
+            health,
+            0f
+        );
 
 
-        // Update the health bar immediately.
+        // Update HealthBar immediately.
         UpdateHealthBar();
 
 
@@ -236,7 +464,6 @@ public class PlayerHealth : MonoBehaviour
         // CHECK DEATH
         // -----------------------------------------------------
 
-        // Die immediately when health reaches zero.
         if (health <= 0f)
         {
             Die();
@@ -252,28 +479,31 @@ public class PlayerHealth : MonoBehaviour
     {
         // Don't restore health after death.
         if (isDead)
+        {
             return;
+        }
 
 
-        // Ignore invalid healing values.
+        // Ignore invalid healing.
         if (amount <= 0f)
+        {
             return;
+        }
 
 
-        // Add the healing amount.
+        // Add healing.
         health += amount;
 
 
-        // Prevent health from exceeding max health.
-        health =
-            Mathf.Clamp(
-                health,
-                0f,
-                maxHealth
-            );
+        // Prevent health from exceeding maximum.
+        health = Mathf.Clamp(
+            health,
+            0f,
+            maxHealth
+        );
 
 
-        // Update the health bar.
+        // Update HealthBar.
         UpdateHealthBar();
 
 
@@ -296,7 +526,9 @@ public class PlayerHealth : MonoBehaviour
     {
         // Prevent multiple death calls.
         if (isDead)
+        {
             return;
+        }
 
 
         // Mark Player as dead.
@@ -312,7 +544,6 @@ public class PlayerHealth : MonoBehaviour
         // DEATH SOUND
         // -----------------------------------------------------
 
-        // Play death sound before disabling the Player.
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX(
@@ -332,8 +563,7 @@ public class PlayerHealth : MonoBehaviour
         // DISABLE PLAYER
         // -----------------------------------------------------
 
-        // Disable the Player after the death state
-        // has been registered.
+        // Keep original behavior.
         gameObject.SetActive(false);
     }
 
@@ -344,7 +574,7 @@ public class PlayerHealth : MonoBehaviour
 
     private void ShowGameOverScreen()
     {
-        // Show Game Over UI.
+        // Show Game Over panel.
         if (GameOverScreen != null)
         {
             GameOverScreen.SetActive(true);
@@ -362,7 +592,6 @@ public class PlayerHealth : MonoBehaviour
         Time.timeScale = 0f;
 
 
-        // Log the Game Over state.
         Debug.Log(
             "Game Over"
         );
@@ -375,21 +604,28 @@ public class PlayerHealth : MonoBehaviour
 
     private void UpdateHealthBar()
     {
-        // Make sure the health bar exists.
+        // HealthBar not found yet.
         if (healthbar == null)
+        {
             return;
+        }
 
 
         // Prevent division by zero.
         if (maxHealth <= 0f)
+        {
             return;
+        }
 
 
-        // Convert health into a 0-1 value.
+        // Convert health to 0-1.
         //
-        // 100 / 100 = 1
-        // 50 / 100  = 0.5
-        // 0 / 100   = 0
+        // 100 / 100 = 1.00
+        // 75  / 100 = 0.75
+        // 50  / 100 = 0.50
+        // 25  / 100 = 0.25
+        // 0   / 100 = 0.00
+
         healthbar.fillAmount =
             Mathf.Clamp01(
                 health / maxHealth

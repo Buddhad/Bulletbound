@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class PlayerShooter : MonoBehaviour
 {
@@ -17,7 +18,7 @@ public class PlayerShooter : MonoBehaviour
     public int ammoAmmount = 14;
 
     [Header("Reserve Ammo")]
-    [SerializeField] private int reserveAmmo = 0;
+    [SerializeField] private int reserveAmmo = 30;
 
     public int ReserveAmmo => reserveAmmo;
 
@@ -31,8 +32,12 @@ public class PlayerShooter : MonoBehaviour
     public float reloadDuration = 1f;
     public bool isReloading = false;
 
+    [Header("Camera Shake")]
+    private CamShake camShake;
+
     private bool isFiring = false;
     private float nextFireTime = 0f;
+
 
     // =========================================================
     // AWAKE
@@ -59,8 +64,206 @@ public class PlayerShooter : MonoBehaviour
         );
 
         ValidateReferences();
+    }
+
+
+    // =========================================================
+    // START
+    // =========================================================
+
+    private void Start()
+    {
+        // Main Menu = Build Index 0.
+        // There is no gameplay UI there.
+        if (SceneManager.GetActiveScene().buildIndex == 0)
+        {
+            return;
+        }
+
+        FindAmmoUI();
+        FindCameraShake();
+
         UpdateAmmoUI();
     }
+
+
+    // =========================================================
+    // ENABLE
+    // =========================================================
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+
+    // =========================================================
+    // DISABLE
+    // =========================================================
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+
+    // =========================================================
+    // SCENE LOADED
+    // =========================================================
+
+    private void OnSceneLoaded(
+        Scene scene,
+        LoadSceneMode mode
+    )
+    {
+        // Build Index 0 = Main Menu.
+        if (scene.buildIndex == 0)
+        {
+            return;
+        }
+
+        Debug.Log(
+            "PlayerShooter: Gameplay scene loaded: " +
+            scene.name
+        );
+
+        // Find the new level's UI.
+        FindAmmoUI();
+
+        // Find the new level's camera shake.
+        FindCameraShake();
+
+        // Display current persistent ammo.
+        UpdateAmmoUI();
+    }
+
+
+    // =========================================================
+    // FIND CAMERA SHAKE
+    // =========================================================
+
+    private void FindCameraShake()
+    {
+        camShake = null;
+
+        // Find the CamShake component in the current scene.
+        camShake = FindFirstObjectByType<CamShake>();
+
+        if (camShake != null)
+        {
+            Debug.Log(
+                "PlayerShooter: CamShake connected in " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerShooter: CamShake was not found in " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+    }
+
+
+    // =========================================================
+    // FIND AMMO UI
+    // =========================================================
+
+    private void FindAmmoUI()
+    {
+        // Clear references to previous scene UI.
+        showAmmo = null;
+        reserveAmmoText = null;
+
+
+        // Find current level AmmoText.
+        showAmmo = FindUIObject<TextMeshProUGUI>(
+            "AmmoText"
+        );
+
+
+        // Find current level ReserveAmmoText.
+        reserveAmmoText = FindUIObject<TextMeshProUGUI>(
+            "ReserveAmmoText"
+        );
+
+
+        // Debug information.
+        if (showAmmo != null)
+        {
+            Debug.Log(
+                "PlayerShooter: AmmoText connected."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerShooter: AmmoText was not found in scene: " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+
+
+        if (reserveAmmoText != null)
+        {
+            Debug.Log(
+                "PlayerShooter: ReserveAmmoText connected."
+            );
+        }
+        else
+        {
+            Debug.LogWarning(
+                "PlayerShooter: ReserveAmmoText was not found in scene: " +
+                SceneManager.GetActiveScene().name
+            );
+        }
+    }
+
+
+    // =========================================================
+    // FIND UI OBJECT
+    // =========================================================
+
+    private T FindUIObject<T>(
+        string objectName
+    ) where T : Component
+    {
+        T[] objects =
+            Resources.FindObjectsOfTypeAll<T>();
+
+        foreach (T obj in objects)
+        {
+            if (obj == null)
+            {
+                continue;
+            }
+
+            GameObject uiObject =
+                obj.gameObject;
+
+            // Ignore prefab assets.
+            if (!uiObject.scene.IsValid())
+            {
+                continue;
+            }
+
+            // Ignore unloaded scenes.
+            if (!uiObject.scene.isLoaded)
+            {
+                continue;
+            }
+
+            // Find exact GameObject name.
+            if (uiObject.name == objectName)
+            {
+                return obj;
+            }
+        }
+
+        return null;
+    }
+
 
     // =========================================================
     // UPDATE
@@ -69,10 +272,14 @@ public class PlayerShooter : MonoBehaviour
     private void Update()
     {
         if (Time.timeScale == 0f)
+        {
             return;
+        }
 
         if (isReloading)
+        {
             return;
+        }
 
         Shoot();
 
@@ -82,6 +289,7 @@ public class PlayerShooter : MonoBehaviour
             TryReload();
         }
     }
+
 
     // =========================================================
     // SHOOT
@@ -99,6 +307,7 @@ public class PlayerShooter : MonoBehaviour
             return;
         }
 
+
         if (bulletPrefab == null)
         {
             Debug.LogError(
@@ -109,21 +318,53 @@ public class PlayerShooter : MonoBehaviour
             return;
         }
 
+
         if (Input.GetKeyDown(KeyCode.F) &&
             !isFiring &&
             ammoAmmount > 0 &&
             Time.time >= nextFireTime)
         {
+            // -------------------------------------------------
+            // CREATE BULLET
+            // -------------------------------------------------
+
             Instantiate(
                 bulletPrefab,
                 shootingPoint.position,
                 transform.rotation
             );
 
+
+            // -------------------------------------------------
+            // CAMERA SHAKE
+            // -------------------------------------------------
+
+            if (camShake != null)
+            {
+                camShake.ShakeCamera();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "PlayerShooter: CamShake is missing. " +
+                    "Camera shake could not be played."
+                );
+            }
+
+
+            // -------------------------------------------------
+            // GUN SOUND
+            // -------------------------------------------------
+
             if (AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySFX("Gun");
             }
+
+
+            // -------------------------------------------------
+            // AMMO
+            // -------------------------------------------------
 
             isFiring = true;
 
@@ -138,6 +379,7 @@ public class PlayerShooter : MonoBehaviour
         }
     }
 
+
     // =========================================================
     // TRY RELOAD
     // =========================================================
@@ -145,24 +387,36 @@ public class PlayerShooter : MonoBehaviour
     private void TryReload()
     {
         if (isReloading)
+        {
             return;
+        }
 
-        // Magazine already full.
+
         if (ammoAmmount >= maxAmmo)
         {
-            Debug.Log("Magazine already full.");
+            Debug.Log(
+                "Magazine already full."
+            );
+
             return;
         }
 
-        // No reserve bullets.
+
         if (reserveAmmo <= 0)
         {
-            Debug.Log("No reserve ammunition.");
+            Debug.Log(
+                "No reserve ammunition."
+            );
+
             return;
         }
 
-        StartCoroutine(Reload());
+
+        StartCoroutine(
+            Reload()
+        );
     }
+
 
     // =========================================================
     // RELOAD
@@ -171,19 +425,30 @@ public class PlayerShooter : MonoBehaviour
     private IEnumerator Reload()
     {
         if (isReloading)
+        {
             yield break;
+        }
+
 
         if (ammoAmmount >= maxAmmo)
+        {
             yield break;
+        }
+
 
         if (reserveAmmo <= 0)
+        {
             yield break;
+        }
+
 
         isReloading = true;
 
-        Debug.Log("Reloading...");
+        Debug.Log(
+            "Reloading..."
+        );
 
-        // Reload animation.
+
         if (anim != null)
         {
             anim.SetBool(
@@ -192,32 +457,43 @@ public class PlayerShooter : MonoBehaviour
             );
         }
 
+
         yield return new WaitForSeconds(
             reloadDuration
         );
 
-        // Calculate how many bullets are needed.
+
         int bulletsNeeded =
             maxAmmo - ammoAmmount;
 
-        // Only load bullets that are actually available.
+
         int bulletsToLoad =
             Mathf.Min(
                 bulletsNeeded,
                 reserveAmmo
             );
 
-        ammoAmmount += bulletsToLoad;
 
-        reserveAmmo -= bulletsToLoad;
+        ammoAmmount +=
+            bulletsToLoad;
 
-        // Reload sound.
+
+        reserveAmmo -=
+            bulletsToLoad;
+
+
+        // -----------------------------------------------------
+        // RELOAD SOUND
+        // -----------------------------------------------------
+
         if (AudioManager.Instance != null)
         {
-            AudioManager.Instance.PlaySFX("Reload");
+            AudioManager.Instance.PlaySFX(
+                "Reload"
+            );
         }
 
-        // Stop reload animation.
+
         if (anim != null)
         {
             anim.SetBool(
@@ -226,10 +502,13 @@ public class PlayerShooter : MonoBehaviour
             );
         }
 
+
         isReloading = false;
+
         isFiring = false;
 
         UpdateAmmoUI();
+
 
         Debug.Log(
             "Reload complete. Magazine: " +
@@ -241,6 +520,7 @@ public class PlayerShooter : MonoBehaviour
         );
     }
 
+
     // =========================================================
     // ADD RESERVE AMMO
     // =========================================================
@@ -248,11 +528,15 @@ public class PlayerShooter : MonoBehaviour
     public void AddReserveAmmo(int amount)
     {
         if (amount <= 0)
+        {
             return;
+        }
+
 
         reserveAmmo += amount;
 
         UpdateAmmoUI();
+
 
         Debug.Log(
             "Purchased bullets: +" +
@@ -262,17 +546,13 @@ public class PlayerShooter : MonoBehaviour
         );
     }
 
+
     // =========================================================
     // AMMO UI
     // =========================================================
 
     private void UpdateAmmoUI()
     {
-        // Main ammo UI.
-        //
-        // Example:
-        // Bullet: 14/14 
-
         if (showAmmo != null)
         {
             showAmmo.text =
@@ -282,10 +562,6 @@ public class PlayerShooter : MonoBehaviour
                 maxAmmo;
         }
 
-        // Separate reserve ammo UI.
-        //
-        // Example:
-        // Reserve: 30
 
         if (reserveAmmoText != null)
         {
@@ -294,6 +570,7 @@ public class PlayerShooter : MonoBehaviour
                 reserveAmmo;
         }
     }
+
 
     // =========================================================
     // VALIDATE REFERENCES
@@ -309,6 +586,7 @@ public class PlayerShooter : MonoBehaviour
             );
         }
 
+
         if (bulletPrefab == null)
         {
             Debug.LogWarning(
@@ -316,6 +594,7 @@ public class PlayerShooter : MonoBehaviour
                 this
             );
         }
+
 
         if (anim == null)
         {
@@ -325,20 +604,9 @@ public class PlayerShooter : MonoBehaviour
             );
         }
 
-        if (showAmmo == null)
-        {
-            Debug.LogWarning(
-                "PlayerShooter: Main Ammo UI is not assigned.",
-                this
-            );
-        }
 
-        if (reserveAmmoText == null)
-        {
-            Debug.LogWarning(
-                "PlayerShooter: Reserve Ammo Text is not assigned.",
-                this
-            );
-        }
+        // UI references are intentionally not validated.
+        // The Player is persistent.
+        // The Canvas changes with every gameplay scene.
     }
 }

@@ -1,28 +1,49 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 
 public class AmmoDisplay : MonoBehaviour
 {
-    
-    public int ammo;
-    [SerializeField]
-    private bool isFiring;
-    public TextMeshProUGUI showAmmo;
+    [Header("Ammo")]
+    [SerializeField] private int ammo = 7;
+    [SerializeField] private int maxAmmo = 7;
 
-    // Update is called once per frame
-    void Update()
+    [Header("UI")]
+    [SerializeField] private TextMeshProUGUI showAmmo;
+
+
+    private void Update()
     {
-        UIammo();
+        UpdateAmmoUI();
+
+        if (Input.GetKeyDown(KeyCode.F) && ammo > 0)
+        {
+            Shoot();
+        }
     }
 
-    private void UIammo(){
-        showAmmo.text=ammo.ToString("Bullet: "+ammo+"/7");
-        if(Input.GetKeyDown(KeyCode.F) && !isFiring && ammo>0){
-            isFiring=true;
-            ammo--;
-            isFiring=false;
-        }
+
+    private void Shoot()
+    {
+        ammo--;
+
+        Debug.Log(
+            "Shot fired. Ammo: " +
+            ammo +
+            "/" +
+            maxAmmo
+        );
+    }
+
+
+    private void UpdateAmmoUI()
+    {
+        if (showAmmo == null)
+            return;
+
+        showAmmo.text =
+            "Bullet: " +
+            ammo +
+            "/" +
+            maxAmmo;
     }
 }

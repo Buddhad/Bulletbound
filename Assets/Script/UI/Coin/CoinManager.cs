@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class CoinManager : MonoBehaviour
 {
@@ -7,7 +8,6 @@ public class CoinManager : MonoBehaviour
     // SINGLETON
     // =========================================================
 
-    // Global reference to the CoinManager.
     public static CoinManager Instance;
 
 
@@ -17,7 +17,8 @@ public class CoinManager : MonoBehaviour
 
     [Header("Coins")]
 
-    // Current number of coins owned by the Player.
+    // Current number of coins.
+    // This persists between levels.
     [SerializeField] private int coins = 0;
 
 
@@ -27,8 +28,9 @@ public class CoinManager : MonoBehaviour
 
     [Header("UI")]
 
-    // Text used to display the current coin count.
-    [SerializeField] private TextMeshProUGUI coinText;
+    // This is the actual TextMeshPro object.
+    // It belongs to the current level's Canvas.
+    private TextMeshProUGUI coinText;
 
 
     // =========================================================
@@ -37,15 +39,37 @@ public class CoinManager : MonoBehaviour
 
     private void Awake()
     {
-        // Prevent duplicate CoinManager objects.
+        // Prevent duplicate CoinManagers.
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
 
-        // Register this CoinManager as the active instance.
         Instance = this;
+
+        // Keep CoinManager alive between levels.
+        DontDestroyOnLoad(gameObject);
+    }
+
+
+    // =========================================================
+    // ENABLE
+    // =========================================================
+
+    private void OnEnable()
+    {
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+
+    // =========================================================
+    // DISABLE
+    // =========================================================
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
 
@@ -55,8 +79,94 @@ public class CoinManager : MonoBehaviour
 
     private void Start()
     {
-        // Update the coin UI when the scene starts.
+        FindCoinUI();
+
         UpdateCoinUI();
+    }
+
+
+    // =========================================================
+    // SCENE LOADED
+    // =========================================================
+
+    private void OnSceneLoaded(
+        Scene scene,
+        LoadSceneMode mode
+    )
+    {
+        Debug.Log(
+            "CoinManager: Scene loaded: " +
+            scene.name
+        );
+
+        // Find the new level's Coin Text.
+        FindCoinUI();
+
+        // Display the persistent coin amount.
+        UpdateCoinUI();
+    }
+
+
+    // =========================================================
+    // FIND COIN UI
+    // =========================================================
+
+    private void FindCoinUI()
+    {
+        // Clear old reference.
+        coinText = null;
+
+        // Find every TextMeshProUGUI in loaded scenes.
+        TextMeshProUGUI[] texts =
+            Resources.FindObjectsOfTypeAll<TextMeshProUGUI>();
+
+        foreach (TextMeshProUGUI text in texts)
+        {
+            if (text == null)
+                continue;
+
+            GameObject obj = text.gameObject;
+
+            // Ignore objects that are not part of a scene.
+            if (!obj.scene.IsValid())
+                continue;
+
+            // Ignore unloaded scenes.
+            if (!obj.scene.isLoaded)
+                continue;
+
+            // -------------------------------------------------
+            // IMPORTANT
+            // -------------------------------------------------
+            //
+            // Your hierarchy is:
+            //
+            // Coin Score
+            // ├── Icon Image
+            // └── Coin Text
+            //
+            // Therefore we look for "Coin Text".
+            // -------------------------------------------------
+
+            if (obj.name == "Coin Text")
+            {
+                coinText = text;
+
+                Debug.Log(
+                    "CoinManager: Coin Text found in scene: " +
+                    obj.scene.name
+                );
+
+                break;
+            }
+        }
+
+        if (coinText == null)
+        {
+            Debug.LogWarning(
+                "CoinManager: Coin Text was not found in the current scene."
+            );
+        }
     }
 
 
@@ -66,16 +176,11 @@ public class CoinManager : MonoBehaviour
 
     public void AddCoins(int amount)
     {
-        // Ignore zero or negative values.
         if (amount <= 0)
             return;
 
-
-        // Add coins to the current total.
         coins += amount;
 
-
-        // Debug information.
         Debug.Log(
             "Coins collected: +" +
             amount
@@ -86,8 +191,6 @@ public class CoinManager : MonoBehaviour
             coins
         );
 
-
-        // Update the UI.
         UpdateCoinUI();
     }
 
@@ -98,7 +201,6 @@ public class CoinManager : MonoBehaviour
 
     public bool SpendCoins(int amount)
     {
-        // Invalid amount.
         if (amount <= 0)
         {
             Debug.LogWarning(
@@ -108,8 +210,6 @@ public class CoinManager : MonoBehaviour
             return false;
         }
 
-
-        // Check whether the Player has enough coins.
         if (coins < amount)
         {
             Debug.Log(
@@ -119,12 +219,8 @@ public class CoinManager : MonoBehaviour
             return false;
         }
 
-
-        // Remove the purchased amount.
         coins -= amount;
 
-
-        // Debug information.
         Debug.Log(
             "Coins spent: " +
             amount
@@ -135,12 +231,8 @@ public class CoinManager : MonoBehaviour
             coins
         );
 
-
-        // Update the UI.
         UpdateCoinUI();
 
-
-        // Purchase was successful.
         return true;
     }
 
@@ -151,10 +243,8 @@ public class CoinManager : MonoBehaviour
 
     public bool HasEnoughCoins(int amount)
     {
-        // Invalid amounts cannot be purchased.
         if (amount <= 0)
             return false;
-
 
         return coins >= amount;
     }
@@ -176,24 +266,17 @@ public class CoinManager : MonoBehaviour
 
     private void UpdateCoinUI()
     {
-        // Make sure the UI reference exists.
         if (coinText == null)
         {
             Debug.LogWarning(
-                "CoinManager: Coin Text is not assigned!",
-                this
+                "CoinManager: Cannot update Coin Text because UI reference is missing."
             );
 
             return;
         }
 
+        coinText.text = coins.ToString();
 
-        // Display the current coin amount.
-        coinText.text =
-            coins.ToString();
-
-
-        // Debug information.
         Debug.Log(
             "Coin UI updated: " +
             coinText.text

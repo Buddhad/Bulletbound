@@ -17,12 +17,11 @@ public class PauseMenu : MonoBehaviour
     // STATE
     // =========================================================
 
-    // Stores whether the game is currently paused.
     private bool isPaused = false;
 
 
     // =========================================================
-    // UNITY UPDATE
+    // UPDATE
     // =========================================================
 
     private void Update()
@@ -41,16 +40,13 @@ public class PauseMenu : MonoBehaviour
 
     public void Pause()
     {
-        // Show Pause Menu.
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(true);
         }
 
-        // Stop gameplay.
         Time.timeScale = 0f;
 
-        // Store pause state.
         isPaused = true;
     }
 
@@ -61,16 +57,13 @@ public class PauseMenu : MonoBehaviour
 
     public void Resume()
     {
-        // Hide Pause Menu.
         if (pauseMenu != null)
         {
             pauseMenu.SetActive(false);
         }
 
-        // Resume gameplay.
         Time.timeScale = 1f;
 
-        // Update pause state.
         isPaused = false;
     }
 
@@ -93,18 +86,22 @@ public class PauseMenu : MonoBehaviour
 
 
     // =========================================================
-    // HOME / MAIN MENU
+    // HOME
     // =========================================================
 
     public void Home()
     {
-        // Always restore normal time before changing scenes.
         Time.timeScale = 1f;
 
-        // Reset pause state.
         isPaused = false;
 
-        // Load Main Menu.
+        // Make sure the persistent Player is active
+        // before going back to Main Menu.
+        if (PersistentPlayer.Instance != null)
+        {
+            PersistentPlayer.Instance.gameObject.SetActive(true);
+        }
+
         SceneManager.LoadScene("MainMenu");
     }
 
@@ -115,16 +112,69 @@ public class PauseMenu : MonoBehaviour
 
     public void Restart()
     {
-        // Restore normal game speed.
+        // Always restore normal time.
         Time.timeScale = 1f;
 
-        // Reset pause state.
         isPaused = false;
 
-        // Reload the current Gameplay scene.
-        SceneManager.LoadScene(
-            SceneManager.GetActiveScene().buildIndex
-        );
+        // -----------------------------------------------------
+        // REACTIVATE PERSISTENT PLAYER
+        // -----------------------------------------------------
+
+        if (PersistentPlayer.Instance != null)
+        {
+            GameObject player =
+                PersistentPlayer.Instance.gameObject;
+
+            // The Player may have been disabled by Game Over
+            // or another gameplay system.
+            player.SetActive(true);
+
+            // Re-enable Player Movement.
+            PlayerMovement movement =
+                player.GetComponent<PlayerMovement>();
+
+            if (movement != null)
+            {
+                movement.enabled = true;
+                movement.SetMovementEnabled(true);
+                movement.ForceIdle();
+            }
+
+            // Re-enable Player Shooter.
+            PlayerShooter shooter =
+                player.GetComponent<PlayerShooter>();
+
+            if (shooter != null)
+            {
+                shooter.enabled = true;
+                shooter.isReloading = false;
+            }
+
+            // Make sure Player graphics are visible.
+            SpriteRenderer[] renderers =
+                player.GetComponentsInChildren<SpriteRenderer>(
+                    true
+                );
+
+            foreach (SpriteRenderer renderer in renderers)
+            {
+                renderer.enabled = true;
+            }
+
+            Debug.Log(
+                "PauseMenu: Persistent Player reactivated for restart."
+            );
+        }
+
+        // -----------------------------------------------------
+        // RELOAD CURRENT LEVEL
+        // -----------------------------------------------------
+
+        int currentScene =
+            SceneManager.GetActiveScene().buildIndex;
+
+        SceneManager.LoadScene(currentScene);
     }
 
 
@@ -134,12 +184,6 @@ public class PauseMenu : MonoBehaviour
 
     public void AudioMenu()
     {
-        // If you later add a separate Audio Menu,
-        // enable it here.
-        //
-        // Example:
-        // audioMenu.SetActive(true);
-
         // Keep the game paused while the audio menu is open.
         Time.timeScale = 0f;
     }

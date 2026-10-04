@@ -1,11 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class DestroyBullets : MonoBehaviour
 {
-    void Start()
+    [SerializeField] private float lifetime = 5f;
+
+    private void Start()
     {
-        Destroy(gameObject,5f);
+        Destroy(gameObject, lifetime);
     }
 }
