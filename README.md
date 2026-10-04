@@ -13,7 +13,6 @@ Key Features
   - 🔥 Faster Fire Rate
   - 🛡️ Shield Protection
   - ❤️ Health Boost
-  - 🦘 High Jump
   - 🪙 Double Coins
   - 🔫 Additional Bullets
 - 📈 Progressive Challenge
